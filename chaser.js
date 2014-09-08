@@ -4,87 +4,218 @@
 /*                                 -- Game --                                 */
 /*                                                                            */
 /******************************************************************************/
-var COOL = null;
-var HOT = null;
-var MAP = null;
+var map_manager = require('./map');
 
 
 /*------------------------------------*/
-/*            Game Control            */
+/*             Initialize             */
 /*------------------------------------*/
-// NEW CONNECTION!
-function newGame(socket, cool_port, hot_port) {
-	if (MAP == null) {
-		endSocket(socket, "Empty map");
-		return null;
-	}
-	
-	if (socket.localPort == cool_port) {
-		if (COOL != null) {
-			endSocket(socket, "Not accepted")
-			return null;
+var NewGame = function(score_manager, cool_port, hot_port) {
+	this.SM = score_manager;
+	this.BASE_MAP = null;
+	this.COOL = null;
+	this.HOT = null;
+	this.COOL_NAME = null;
+	this.HOT_NAME = null;
+	this.MAP = null;
+	this.COOL_PORT = cool_port;
+	this.HOT_PORT = hot_port;
+	this.RUNNNING = false;
+	this.COOL_GR = false;
+	this.HOT_GR = false;
+}
+
+
+/*------------------------------------*/
+/*             Connection             */
+/*------------------------------------*/
+NewGame.prototype.connection = function(sock) {	
+	if (sock.localPort == this.COOL_PORT) {
+		if (this.COOL != null) {
+			reject(sock, 'COOL is already connected.');
+			return false;
 		}
 		
-		COOL = socket;
-		console.log("COOL: " + socket.remoteAddr + ":" + socket.remotePort);
-		return socket;
+		this.COOL = sock;
+		return true;
 	}
 	
-	if (socket.localPort == hot_port) {
-		if (HOT != null) {
-			endSocket(socket, "Not accepted")
-			return null;
+	if (sock.localPort == this.HOT_PORT) {
+		if (this.HOT != null) {
+			reject(sock, 'HOT is already connected.');
+			return false;
 		}
 		
-		HOT = socket;
-		console.log("HOT: " + socket.remoteAddr + ":" + socket.remotePort);
-		return socket;
+		this.HOT = sock;
+		return true;
 	}
 	
-	endSocket(socket, "Unknown Error")
-	return null;
+	reject(sock, 'Unknown');
+	return false;
 }
 
-// Close socket
-function endSocket(socket, msg) {
-		var write = msg + ": " + socket.remoteAddr + ":" + socket.remotePort;
-		console.log(write);
-		socket.write(write);
-		socket.end();
-}
 
-// END Game
-function endGame() {
-	endSocket(COOL, "gameEnd");
-	endSocket(HOT, "gameEnd");
+/*------------------------------------*/
+/*                Main                */
+/*------------------------------------*/
+NewGame.prototype.command = function(sock, line) {
+	// gr of first, and name
+	if (!this.RUNNING) {
+		if (line == "gr") {
+			if (isHot(sock)) {
+				this.HOT_GR = true;
+				accept(sock, 'HOT');
+			} else {
+				this.COOL_GR = true;
+				accept(sock, 'COOL');
+			}
+			socket.pause();
+		} else {
+			if (isHot(sock)) {
+				this.HOT_NAME = line;
+			} else {
+				this.COOL_NAME = line;
+			}
+		}
+	}
 	
-	COOL = null;
-	HOT = null;
+	// other
+	
+	
+		if (isHot(sock)) {
+			
+		
+		
+		}
+		
+		
+
+	if (line == "gr"
+
+
+
+	if (!this.RUNNING) {
+		if (isHot(sock)) {
+			this.HOT_NAME = line;
+		} else {
+			this.COOL_NAME = line;
+		}
+	}
+
+
+	// getReady()
+	
+
+
+
+
+
+
 }
 
 
 /*------------------------------------*/
-/*               CHaser               */
+/*               Closing              */
 /*------------------------------------*/
-function game(socket, line) {
-
-
-
+NewGame.prototype.close = function(sock) {
+	SM.emitManager('disconnect', {
+		'msg' : (isHot(sock) ? 'HOT' : 'COOL') + 'disconnect'
+	});
+	this.end();
 }
 
 
 /*------------------------------------*/
-/*               Utility              */
+/*             Start / End            */
 /*------------------------------------*/
-function getCH() {
-	return [ COOL, HOT ];
+NewGame.prototype.start = function() {
+	if (this.HOT == null || this.COOL == null) {
+		reject('Player is empty');
+		return false;
+	}
+	
+	if (!(this.HOT_GR && this.COOL_GR) {
+		reject('Player is not ready');
+	}
+
+	if (this.RUNNNING) {
+		reject('It is running.');
+		return false;
+	}
+	
+	if (this.BASE_MAP == null) {
+		reject('Map is empty.')
+		return false;
+	} else if (this.MAP == null) {
+		this.updateMap(BASE_MAP);
+	}
+	
+	if (this.HOT_NAME == null) this.HOT_NAME = "HOT";
+	if (this.COOL_NAME == null) this.COOL_NAME = "COOL";
+
+	this.HOT.resume();
+	this.COOL.resume();
+	
+	this.HOT.write("0" + this.MAP.data4getReady('H').join());
+	this.COOL.write("0" + this.MAP.data4getReady('C').join());
+	
+	this.RUNNING = true;
+}
+
+NewGame.prototype.end = function() {
+	this.HOT.end();
+	this.COOL.end();
+	this.HOT = null;
+	this.COOL = null;
+	this.MAP = null;
+	this.RUNNING = false;
+	this.COOL_NAME = null;
+	this.HOT_NAME = null;
+	this.COOL_GR = false;
+	this.HOT_GR = false;
 }
 
 
-
-module.exports = {
-	newGame: newGame,
-	game:game,
-	endGame: endGame,
-	getCH: getCH
+/*------------------------------------*/
+/*             Map Control            */
+/*------------------------------------*/
+NewGame.prototype.updateMap = function(map) {
+	if (this.RUNNING) {
+		reject('It is running');
+		return false;
+	}
+	
+	try {
+		this.MAP = new map_manager.GameMap(map);
+		this.BASE_MAP = map;
+	} catch(e) {
+		reject(e.message);
+		return false;
+	}
+	
+	return true;
 }
+
+
+/*------------------------------------*/
+/*          Private function          */
+/*------------------------------------*/
+function event(type, obj) { this.SM.emitManager(event, obj); }
+function event(type, sock, msg) {
+	event(type, {
+		'msg':msg,
+		'addr':sock.remoteAddr,
+		'port':sock.remotePort
+	});
+}
+function accept(sock, msg) { event('Accept', sock, msg); }
+function accept(msg) { event('Accept', {'msg':msg}); }
+function reject(sock, msg) {
+	event('Reject', sock, msg);
+	sock.end();
+}
+function reject(msg) { event('Reject', {'msg':msg}) }
+function isHot(sock) { return this.HOT == sock; }
+function isCool(sock) { return !isHot(sock); }
+
+module.exports = { NewGame: NewGame }

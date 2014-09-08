@@ -5,9 +5,12 @@
 /*                                                                            */
 /******************************************************************************/
 var net = require('net');
-var chaser = require('./chaser');
 var express = require('express');
 var io = require('socket.io');
+var chaser = require('./chaser');
+var web = require('./web');
+
+
 
 /**************************************/
 /*            Configuration           */
@@ -18,6 +21,62 @@ var HOT_PORT = 50000;
 var HOST = '127.0.0.1';
 
 
+
+/**************************************/
+/*             Web Server             */
+/**************************************/
+var app = express.createServer();
+var wserver = app.get('/', function(req, res) {
+	res.send('Hello world!');
+}).listen(WEB_PORT);
+
+
+
+/**************************************/
+/*          WebSocket Server          */
+/**************************************/
+var score_manager = new web.ScoreManager(io);
+var chserver = new chaser.NewGame(score_manager, COOL_PORT, HOT_PORT);
+
+io.listen(wserver, {'log level':LOG_LEVEL});
+io.sockets.on('connection', function(socket) {
+	/*--------------------------*/
+	/*          Manager         */
+	/*--------------------------*/
+	socket.on('connectManager', function(obj) {
+		//if (obj.key != "test") io.sockets[socket.id].disconnect();
+		score_manager.addManager(socket.id);	
+	});
+	
+	
+	/*--------------------------*/
+	/*            Map           */
+	/*--------------------------*/
+	socket.on('map', function(obj) {
+		if (!obj.map) return;
+		if (!score_manager.isManager(socket.id)) return;
+		chserver.updateMap(obj.map);
+	});
+	
+	
+	/*------------------------------------*/
+	/*               Control              */
+	/*------------------------------------*/
+	socket.on('start', function() {
+		if (!score_manager.isManager(socket.id)) return;
+		chserver.start();
+	}
+	
+	socket.on('end', function() {
+		if (!score_manager.isManager(socket.id)) return;
+		chserver.end();
+	}
+	
+	
+	
+});
+
+
 /**************************************/
 /*             TCP Server             */
 /**************************************/
@@ -26,10 +85,7 @@ var server = net.createServer(function (socket) {
 	/*--------------------------*/
 	/*      NEW CONNECTION!     */
 	/*--------------------------*/
-	if (chaser.newGame(socket, cool_port, hot_port)) {
-		CHUNK[socket] = '';
-	}
-	
+	if (chserver.connect(socket)) CHUNK[socket] = '';
 
 	/*--------------------------*/
 	/*      CHaser Command      */
@@ -37,50 +93,31 @@ var server = net.createServer(function (socket) {
 	socket.on('data', function(data) {
 		CHUNK[socket] += data;
 		
+		// Name
+		
+		
+		
+		
 		socket.pause();
 		while(1) {
 			var idx = CHUNK[socket].indexOf("\r\n");
 			if (idx == -1) break;
 			
 			var line = CHUNK[socket].substring(0, idx);
-			chaser.game(socket, line);
-			
+			chaserver.command(socket, line);
 			CHUNK[socket] = CHUNK[socket].substring(idx + 2, 0);
 		}
 		socket.resume();
 	});
 	
-	
 	/*--------------------------*/
 	/*         Game End         */
 	/*--------------------------*/
 	socket.on('close', function(data) {
-		chaser.endGame();
-		var socks = chaser.getCH();
-		for (var i=0; i<socks.length; i++) {
-			CHUNK[socks] = null;
-		}
+		chaser.close(socket);
+		CHUNK = {};
 	});
 });
 
 server.listen(COOL_PORT, HOST);
 server.listen(HOT_PORT, HOST);
-
-
-/**************************************/
-/*             Web Server             */
-/**************************************/
-var app = express.createServer();
-var server = app.get('/', function(req, res) {
-	res.send('HerokuでNode.jsとExpressを使ってHello world!');
-}).listen(WEB_PORT);
-
-
-/**************************************/
-/*          WebSocket Server          */
-/**************************************/
-io.listen(server, {'log level':LOG_LEVEL});
-io.sockets.on('connection', function(socket) {
-
-
-});

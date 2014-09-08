@@ -10,7 +10,6 @@ var TYPE_BLOCK = 2;
 var TYPE_ITEM = 3;
 
 
-
 /*------------------------------------*/
 /*             Initialize             */
 /*------------------------------------*/
@@ -85,14 +84,6 @@ var GameMap = function(map) {
 }
 
 /*------------------------------------*/
-/*          Private function          */
-/*------------------------------------*/
-function getIndex(x, y) { return y*3 + 1; }
-function getData(x, y) { return this.DATA[getIndex(x, y)]; }
-function setData(x, y, d) { this.DATA[getIndex(x, y)] = d; }
-function checkPlayer(CH) { if (CH != 'C' && CH != 'H') throw new Error("Player is invalid."); }
-
-/*------------------------------------*/
 /*               Getter               */
 /*------------------------------------*/
 GameMap.prototype.isFloor = function(x, y) { return getData(x, y) == TYPE_FLOOR; }
@@ -110,7 +101,6 @@ GameMap.prototype.setFloor = function(x, y) { setData(x, y, TYPE_FLOOR); }
 GameMap.prototype.setBlock = function(x, y) { setData(x, y, TYPE_BLOCK); }
 GameMap.prototype.setItem = function(x, y) { setData(x, y, TYPE_ITEM); }
 
-
 /*------------------------------------*/
 /*                Move                */
 /*------------------------------------*/
@@ -126,7 +116,6 @@ GameMap.prototype.move = function(x, y, CH) {
 	
 	return getData(x, y);
 }
-
 
 /*------------------------------------*/
 /*           CHaser Command           */
@@ -190,3 +179,13 @@ GameMap.prototype.isDeath = function(CH) {
 
 	return false;
 }
+
+/*------------------------------------*/
+/*          Private function          */
+/*------------------------------------*/
+function getIndex(x, y) { return y*3 + 1; }
+function getData(x, y) { return this.DATA[getIndex(x, y)]; }
+function setData(x, y, d) { this.DATA[getIndex(x, y)] = d; }
+function checkPlayer(CH) { if (CH != 'C' && CH != 'H') throw new Error("Player is invalid."); }
+
+module.exports = { GameMap: GameMap }
