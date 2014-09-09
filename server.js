@@ -93,21 +93,18 @@ var server = net.createServer(function (socket) {
 	socket.on('data', function(data) {
 		CHUNK[socket] += data;
 		
-		// Name
-		
-		
-		
-		
+		var resume_flg = true;
 		socket.pause();
-		while(1) {
+		while(resume_flg) {
 			var idx = CHUNK[socket].indexOf("\r\n");
 			if (idx == -1) break;
 			
 			var line = CHUNK[socket].substring(0, idx);
-			chaserver.command(socket, line);
+			resume_flg = chaserver.command(socket, line);
 			CHUNK[socket] = CHUNK[socket].substring(idx + 2, 0);
 		}
-		socket.resume();
+		
+		if (resume_flg) socket.resume();
 	});
 	
 	/*--------------------------*/

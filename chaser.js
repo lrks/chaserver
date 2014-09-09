@@ -5,6 +5,7 @@
 /*                                                                            */
 /******************************************************************************/
 var map_manager = require('./map');
+var events = require('events');
 
 
 /*------------------------------------*/
@@ -54,11 +55,57 @@ NewGame.prototype.connection = function(sock) {
 	return false;
 }
 
+function resume(sock) {
+	sock.resume();
+	
+	var ev = new events.EventEmitter;
+	ev.emit('data', '');
+}
 
 /*------------------------------------*/
 /*                Main                */
 /*------------------------------------*/
 NewGame.prototype.command = function(sock, line) {
+	var is_hot = isHot(sock);
+
+	// Name
+	if (!this.RUNNING && line != "gr") {
+		if (is_hot) {
+			this.HOT_NAME = line;
+		} else {
+			this.COOL_NAME = line;
+		}
+		
+		return true;
+	}
+
+	// getReady
+	if (line == "gr") {
+		if (is_hot) {
+			this.HOT_GR = true;
+			accept(sock, 'HOT');
+		} else {
+			this.COOL_GR = true;
+			accept(sock, 'COOL');
+		}
+		
+		return false;
+	}
+	
+	// walkRight
+	if (line == "wr") {
+		if (
+	
+	
+	}
+	
+	
+	
+	
+	
+
+
+
 	// gr of first, and name
 	if (!this.RUNNING) {
 		if (line == "gr") {
@@ -152,12 +199,12 @@ NewGame.prototype.start = function() {
 	
 	if (this.HOT_NAME == null) this.HOT_NAME = "HOT";
 	if (this.COOL_NAME == null) this.COOL_NAME = "COOL";
-
-	this.HOT.resume();
-	this.COOL.resume();
 	
-	this.HOT.write("0" + this.MAP.data4getReady('H').join());
 	this.COOL.write("0" + this.MAP.data4getReady('C').join());
+	this.COOL_GR = false;
+	resume(this.COOL);
+	
+	//this.HOT.write("0" + this.MAP.data4getReady('H').join());
 	
 	this.RUNNING = true;
 }
