@@ -15,5 +15,3 @@ var Player = function(name, addr, port) {
 }
 
 module.exports = { Player: Player }
-
-/* 再現機能 */

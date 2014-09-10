@@ -105,18 +105,18 @@ class Server:
 				# Check the receive
 				if p.conn.recv(1) != '#': raise SyntaxError
 	
-	def __exchange(p, cmd):
+	def __exchange(self, p, cmd):
 		self.ws.send(json.dumps({'event':'clientRequest', 'side':p.side, 'cmd':cmd}))
 		recv = self.ws.recv()
 		if len(recv) != 10: raise SyntaxError
 		p.conn.sendall(recv)
 		return recv[0] == '1'
 		
-	def error(err):
+	def error(self, err):
 		if self.ws is not None:
 			self.ws.send(join.dumps({'event':'clientError', 'side':self.now.side, 'msg':error}))
 	
-	def clean_up(self):
+	def cleanup(self):
 		if self.ws is not None:
 			#self.ws.send(join.dumps({'event':'serverFinished'}))		
 			self.ws.close()
@@ -130,7 +130,7 @@ class Server:
 #--------------------------------------#
 if __name__ == '__main__':
 	# Configuration
-	URL = 'ws://localhost:30000/'
+	URL = 'ws://127.0.0.1:3000/'
 	NAME = '練習場1'
 
 	HOST = '127.0.0.1'
