@@ -39,7 +39,7 @@ Board.prototype.isReady = function() {
 /*------------------------------------*/
 Board.prototype.command = function(side, cmd) {
 	var obj = {};
-	obj.state = this.map.checkEnd();
+	obj.state = this.isStart() ? this.map.checkEnd() : 2;
 	var before = this.map.getAllData();
 	var f;
 	

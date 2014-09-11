@@ -11,7 +11,8 @@ var WEB_PORT = 3000;
 var DIR_NAME = 'web';
 var LOG_LEVEL = 2;
 
-
+var url = require('url');
+var qs = require('querystring');
 var fs = require('fs');
 var http = require('http');
 var board = require('./board');
@@ -20,17 +21,70 @@ var server = http.createServer(handler);
 var io = require('socket.io').listen(server, {'log level':LOG_LEVEL});
 server.listen(WEB_PORT);
 
+var SERVERS = {};
 
 /**************************************/
 /*             Web Server             */
 /**************************************/
-var url = require('url');
-var qs = require('querystring');
-
 function handler(req, res) {
 	var parse = url.parse(req.url, true);
 	if (parse.pathname === '/') parse.pathname = '/index.html';
 	
+	// from CHServer
+	if (req.method === 'POST') {
+		var body = '';
+		req.on('data', function(chunk) { body += chunk; });
+		req.on('end', function() {
+			var query = qs.parse(body);
+			var response;
+			
+			if (parse.pathname === '/serverHello') {
+				SERVERS[query.id] = board.Board(query.name);
+				emitManager('serverHello',  {'id':query.id, 'name':query.name});
+			} else if (parse.pathname === '/clientHello') {
+				if (!(query.side === 'C' || query.side === 'H')) {
+					res.writeHead(403);
+					res.end('');
+					return;
+				}
+				var plyer = player.Player(query.name, query.addr, query.port);
+				SERVERS[query.id].setPlayer(query.side, plyer);
+				emitManager('clientHello',  {'id':query.id, 'side':query.side, 'name':query.name, 'addr':query.addr, 'port':query.port});
+			} else if (parse.pathname === '/serverStart') {
+				emitManager('serverStart', {'id':query.id});
+			} else if (parse.pathname === '/clientRequest') {
+				var json = SERVERS[query.id].command(query.side, query.cmd);
+				res = '{"result":"'+((json.state === -1) ? '1' : '0') + json.data.join()+'"}';
+				emitManager('clientRequest', {'side':query.side, 'cmd':query.cmd, 'res':json});
+			} else if (parse.pathname === '/clientError') {
+				SERVERS[query.id].error(query.side, query.msg);
+				emitManager('clientError', {'id':query.id, 'side':query.side, 'msg':query.msg});
+			} else if (parse.pathname === '/serverDisconnect') {
+				SERVERS[query.id].stop();
+				delete SERVERS[query.id]
+				emitManager('serverDisconnect', {'id':query.id});
+			} else {
+				res.writeHead(404);
+				res.end('');
+				return;
+			}
+			
+			if (!response) response = '{"msg":"OK"}';
+			res.writeHead(200, {'Content-Type':'application/json'});
+			res.end(response);
+			return;
+		});
+	}
+	
+	if (parse.pathname === '/isStart') {
+		var flg = SERVERS[obj.id].isStart() ? 1 : 0;
+		res.writeHead(200, {'Content-Type':'application/json'});
+		res.end('{"flg":' + flg + '}');
+		return;
+	}
+	
+	
+	// Static files
 	fs.readFile(__dirname + '/' + DIR_NAME + parse.pathname, function(err, content) {
 		if (err) {
 			res.writeHead(500);
@@ -50,43 +104,13 @@ function handler(req, res) {
 function emitManager(event, obj) { io.to('manager').emit(event, obj); }
 
 io.sockets.on('connection', function(socket) {
-	console.log(socket.id);
-
-	/*------------------------------------*/
-	/*               Server               */
-	/*------------------------------------*/
-	socket.on('message', function(obj) {
-		switch(obj.event) {
-		case 'serverHello':
-			socket.join('board');
-			socket.board = board.Board(obj.name);
-			socket.room = 'board';
-			emitManager(obj.event, {'name':obj.name, 'id':socket.id});
-			break;
-		case 'clientHello':
-			plyer = player.Player(obj.name, obj.addr, obj.port);
-			socket.board.setPlayer(obj.side, plyer);
-			emitManager(obj.event, {'side':obj.side, 'name':obj.name, 'addr':obj.addr, 'port':obj.port});
-			break;
-		case 'clientRequest':
-			var res = socket.board.command(obj.side, obj.cmd);
-			socket.emit('message', ((res.state === -1) ? '1' : '0') + res.data.join());
-			emitManager(obj.event, {'side':obj.side, 'cmd':obj.cmd, 'res':res});
-			break;
-		case 'clientError':
-			socket.board.error(obj.side, obj.msg);
-			emitManager(obj.event, {'side':obj.side, 'msg':obj.msg});
-			break;
-		}
-	});
-	
-	
 	/*------------------------------------*/
 	/*               Manager              */
 	/*------------------------------------*/
 	socket.on('connectManager', function() {
 		socket.join('manager');
 		socket.room = 'manager';
+		socket.emit('initialize', SERVERS);
 	});
 	
 	socket.on('gameControl', function(obj) {
@@ -94,20 +118,17 @@ io.sockets.on('connection', function(socket) {
 		
 		var msg;
 		if (obj.msg === 'start') {
-			var flg = io.to(obj.id).board.isReady();
+			var flg = SERVERS[obj.id].isReady();
 			if (!flg) return;
-			io.to(obj.id).board.start();
+			SERVERS[obj.id].start();
 			msg = obj.msg;
 		} else if (obj.msg === 'stop') {
-			var flg = io.to(obj.id).board.isStart();
+			var flg = SERVERS[obj.id].isStart();
 			if (!flg) return;
-			io.to(obj.id).board.stop();
-			msg = '0000000000';
+			SERVERS[obj.id].stop();
 		} else {
 			return;
 		}
-		
-		io.to(obj.id).emit('message', msg);
 	});
 	
 	socket.on('setMap', function(obj) {
@@ -121,7 +142,7 @@ io.sockets.on('connection', function(socket) {
 			return;
 		}
 		
-		io.to(obj.id).board.setMap(mpmp);
+		SERVERS[obj.id].setMap(mpmp);
 		socket.emit('getMap', {'name':mpmp.name, 'size':mpmp.size, 'turn':mpmp.turn, 'data':mpmp.data, 'player':mpmp.player, 'item':mpmp.item});
 	});
 	
@@ -130,8 +151,6 @@ io.sockets.on('connection', function(socket) {
 	/*             Disconnect             */
 	/*------------------------------------*/
 	socket.on('disconnect', function() {
-		if (socket.room === 'server') io.to(obj.id).board.stop();
-
 		console.log('disconnect');
 	});
 });
