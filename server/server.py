@@ -81,7 +81,7 @@ class Server:
 			self.ws.send(json.dumps({'event':'clientHello', 'side':p.side, 'name':p.name, 'addr':p.addr[0], 'port':p.addr[1]}))
 
 		# Wait for manager
-		recv = ws.recv()
+		recv = self.ws.recv()
 		if recv != "start": raise SyntaxError
 
 	def zoi(self):
@@ -91,7 +91,7 @@ class Server:
 				self.now = p
 			
 				# Notification of turn
-				p.conn.sendall('@')
+				p.conn.sendall("@\r\n")
 			
 				# getready
 				if not p.gr(): raise SyntaxError
@@ -103,7 +103,7 @@ class Server:
 				run_flg = exchange(p, cmd)
 				
 				# Check the receive
-				if p.conn.recv(1) != '#': raise SyntaxError
+				if p.conn.recv(3) != "#\r\n": raise SyntaxError
 	
 	def __exchange(self, p, cmd):
 		self.ws.send(json.dumps({'event':'clientRequest', 'side':p.side, 'cmd':cmd}))
@@ -114,11 +114,11 @@ class Server:
 		
 	def error(self, err):
 		if self.ws is not None:
-			self.ws.send(join.dumps({'event':'clientError', 'side':self.now.side, 'msg':error}))
+			self.ws.send(json.dumps({'event':'clientError', 'side':self.now.side, 'msg':err}))
 	
 	def cleanup(self):
 		if self.ws is not None:
-			#self.ws.send(join.dumps({'event':'serverFinished'}))		
+			#self.ws.send(json.dumps({'event':'serverFinished'}))
 			self.ws.close()
 		
 		for p in [ self.cool, self.hot ]: 
@@ -130,8 +130,9 @@ class Server:
 #--------------------------------------#
 if __name__ == '__main__':
 	# Configuration
-	URL = 'ws://127.0.0.1:3000/'
+	URL = 'ws://127.0.0.1:3000/socket.io/?transport=websocket'
 	NAME = '練習場1'
+	
 
 	HOST = '127.0.0.1'
 	COOL_PORT = 40000

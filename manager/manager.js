@@ -87,7 +87,6 @@ io.sockets.on('connection', function(socket) {
 	socket.on('connectManager', function() {
 		socket.join('manager');
 		socket.room = 'manager';
-		socket.manager = manager.Manager();
 	});
 	
 	socket.on('gameControl', function(obj) {
