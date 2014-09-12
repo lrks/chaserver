@@ -29,7 +29,7 @@ class Player:
 		self.side = side
 		self.port = port
 		self.sock = sock
-		self.r = re.compile("[wlsp][rlup]")
+		self.r = re.compile("[wlsp][rlud]")
 		
 	def accept(self):
 		conn, addr = self.sock.accept()
@@ -45,8 +45,8 @@ class Player:
 		
 	def gr(self):
 		str = self.__recv()
-		if str != "gr": return false
-		return true
+		if str != "gr": return False
+		return True
 	
 	def cmd(self):
 		str = self.__recv()
@@ -55,6 +55,7 @@ class Player:
 	
 	def __recv(self):
 		str = self.conn.recv(4)
+		print 'RECV!', str
 		if len(str) < 2: return None
 		return str[0:2]
 
@@ -71,7 +72,7 @@ class Server:
 
 	def prepare(self, url, name, c_port, h_port, host):
 		self.url = url
-		self.__http(requests.post, 'serverHello', {'name':name})
+		self.__http('POST', 'serverHello', {'name':name})
 	
 		self.cool = Player('C', c_port, host)
 		self.hot = Player('H', h_port, host)
@@ -80,59 +81,82 @@ class Server:
 		for p in [ self.cool, self.hot ]:
 			self.now = p
 			p.nameget()
-			print p.name
-			self.__http(requests.post, 'clientHello', {'side':p.side, 'name':p.name, 'addr':p.addr[0], 'port':p.addr[1]})
+			self.__http('POST', 'clientHello', {'side':p.side, 'name':p.name, 'addr':p.addr[0], 'port':p.addr[1]})
 
 		# Wait for manager
-		while self.__http(requests.get, 'isStart')['flg'] == 1:
+		while self.__http('GET', 'isStart')['flg'] != 1:
 			# ごめんなさい
 			time.sleep(1)
 		
-		self.__http(requests.post, 'serverStart')
+		self.__http('POST', 'serverStart')
 
 	def zoi(self):
-		run_flg = True
-		while run_flg:
+		cool_end = False
+		hot_end = False
+	
+		while not (cool_end and hot_end):
 			for p in [ self.cool, self.hot ]:
+				if cool_end and p == self.cool: continue
+				if hot_end and p == self.hot: continue
 				self.now = p
-			
+				
 				# Notification of turn
 				p.conn.sendall("@\r\n")
-			
+				
 				# getready
 				if not p.gr(): raise SyntaxError
-				run_flg = self.__exchange(p, 'gr')
+				if not self.__exchange(p, 'gr'):
+					if p == self.cool:
+						cool_end = True
+					else:
+						hot_end = True
+					break
 				
-				# cmd
+				#  cmd
 				cmd = p.cmd()
 				if cmd is None: raise SyntaxError
-				run_flg = exchange(p, cmd)
-				
+				time.sleep(1)
+				run_flg = self.__exchange(p, cmd)
+				if not run_flg:
+					if p == self.cool:
+						cool_end = True
+					else:
+						hot_end = True
+					break
+					
 				# Check the receive
 				if p.conn.recv(3) != "#\r\n": raise SyntaxError
+
 	
 	def __exchange(self, p, cmd):
-		recv = self.__http(request.post, 'clientRequest', {'side':p.side, 'cmd':cmd})['result']
+		recv = self.__http('POST', 'clientRequest', {'side':p.side, 'cmd':cmd})['result']
 		if len(recv) != 10: raise SyntaxError
-		p.conn.sendall(recv)
+		print p, cmd, recv
+		p.conn.sendall(recv + "\r\n")
+		print "お返事", recv
 		return recv[0] == '1'
 	
-	def __http(self, func, path, query=None):
+	def __http(self, method, path, query=None):
 		url = "%s%s" % (self.url, path)
 		if query is None: query = {}
 		query.update({'id':self.id})
-		r = func(url, params=query)
+		print url, query
+		if method == 'POST':
+			r = requests.post(url, data=query)
+		else:
+			r = requests.get(url, params=query)
+		print r, r.text
 		return json.loads(r.text)
 		
 	def error(self, err):
 		print err
-		self.__http(requests.post, 'clientError', {'side':self.now.side, 'msg':err})
+		self.__http('POST', 'clientError', {'side':self.now.side, 'msg':err})
 	
 	def cleanup(self):
-		self.__http(requests.post, 'serverDisconnect')
+		self.__http('POST', 'serverDisconnect')
 		
 		for p in [ self.cool, self.hot ]: 
-			if p is not None: p.conn.close()
+			if (p is not None) and (p.conn is not None): p.conn.close()
 
 
 #--------------------------------------#
@@ -145,7 +169,7 @@ if __name__ == '__main__':
 	#ID = ''.join([random.choice(string.ascii + string.digits) for i in range(16)])
 	ID = 'testserver'
 	
-	HOST = '127.0.0.1'
+	HOST = '0.0.0.0'
 	COOL_PORT = 40000
 	HOT_PORT = 50000
 

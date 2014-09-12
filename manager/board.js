@@ -8,7 +8,14 @@
 /*------------------------------------*/
 /*               Prepare              */
 /*------------------------------------*/
-var Board = function(name) { this.name = name; }
+var Board = function(name) {
+	this.name = name;
+	this.start_flg = false;
+	this.cool = null;
+	this.hot = null;
+	this.map = null;
+}
+
 Board.prototype.setMap = function(map) { this.map = map; }
 Board.prototype.setPlayer = function(side, player) {
 	if (side === 'C') {
@@ -22,16 +29,17 @@ Board.prototype.setPlayer = function(side, player) {
 /*------------------------------------*/
 /*               Control              */
 /*------------------------------------*/
-Board.prototype.start = function() { this.start = true; }
-Board.prototype.stop = function() { this.start = false; }
-Board.prototype.isStart = function() { return this.start; }
-Board.prototype.isReady = function() {
-	if (!this.cool) return false;
-	if (!this.hot) return false;
-	if (!this.map) return false;
-	if (!this.isStart()) return false;
+function isReady(cool, hot, map) {
+	if (cool == null) return false;
+	if (hot == null) return false;
+	if (map == null) return false;
 	return true;
 }
+
+Board.prototype.start = function() { this.start_flg = true; }
+Board.prototype.stop = function() { this.start_flg = false; }
+Board.prototype.isStart = function() { return (isReady(this.cool, this.hot, this.map) && this.start_flg); }
+Board.prototype.isStop = function() { return !this.isStart(); }
 
 
 /*------------------------------------*/
@@ -76,37 +84,41 @@ Board.prototype.command = function(side, cmd) {
 	default:
 		f = this.map.data4getReady;
 		if (obj.state === -1) {
+			var f2 = null;
+			
 			switch(cmd) {
 			case 'pr':
-				this.map.work4putRight(side);
+				f2 = this.map.work4putRight;
 				break;
 			case 'pl':
-				this.map.work4putLeft(side);
+				f2 = this.map.work4putLeft;
 				break;
 			case 'pu':
-				this.map.work4putUp(side);
+				f2 = this.map.work4putUp;
 				break;
 			case 'pd':
-				this.map.work4putDown(side);
+				f2 = this.map.work4putDown;
 				break;
 			case 'wr':
-				this.map.work4walkRight(side);
+				f2 = this.map.work4walkRight;
 				break;
 			case 'wl':
-				this.map.work4walkLeft(side);
+				f2 = this.map.work4walkLeft;
 				break;
 			case 'wu':
-				this.map.work4walkUp(side);
+				f2 = this.map.work4walkUp;
 				break;
 			case 'wd':
-				this.map.work4walkDown(side);
+				f2 = this.map.work4walkDown;
 				break;
 			}
+			
+			if (f2 != null) f2.call(this.map, side);
 		}
 	}
 	
 	// get result
-	obj.data = f(side);
+	obj.data = f.call(this.map, side);
 	obj.state = this.map.checkEnd();
 	
 	// take diff

@@ -17,11 +17,13 @@ var fs = require('fs');
 var http = require('http');
 var board = require('./board');
 var player = require('./player');
+var map = require('./map');
 var server = http.createServer(handler);
 var io = require('socket.io').listen(server, {'log level':LOG_LEVEL});
 server.listen(WEB_PORT);
 
 var SERVERS = {};
+
 
 /**************************************/
 /*             Web Server             */
@@ -39,7 +41,7 @@ function handler(req, res) {
 			var response;
 			
 			if (parse.pathname === '/serverHello') {
-				SERVERS[query.id] = board.Board(query.name);
+				SERVERS[query.id] = new board.Board(query.name);
 				emitManager('serverHello',  {'id':query.id, 'name':query.name});
 			} else if (parse.pathname === '/clientHello') {
 				if (!(query.side === 'C' || query.side === 'H')) {
@@ -47,14 +49,14 @@ function handler(req, res) {
 					res.end('');
 					return;
 				}
-				var plyer = player.Player(query.name, query.addr, query.port);
+				var plyer = new player.Player(query.name, query.addr, query.port);
 				SERVERS[query.id].setPlayer(query.side, plyer);
 				emitManager('clientHello',  {'id':query.id, 'side':query.side, 'name':query.name, 'addr':query.addr, 'port':query.port});
 			} else if (parse.pathname === '/serverStart') {
 				emitManager('serverStart', {'id':query.id});
 			} else if (parse.pathname === '/clientRequest') {
 				var json = SERVERS[query.id].command(query.side, query.cmd);
-				res = '{"result":"'+((json.state === -1) ? '1' : '0') + json.data.join()+'"}';
+				response = '{"result":"'+((json.state == -1) ? '1' : '0') + json.data.join('')+'"}';
 				emitManager('clientRequest', {'side':query.side, 'cmd':query.cmd, 'res':json});
 			} else if (parse.pathname === '/clientError') {
 				SERVERS[query.id].error(query.side, query.msg);
@@ -77,7 +79,7 @@ function handler(req, res) {
 	}
 	
 	if (parse.pathname === '/isStart') {
-		var flg = SERVERS[obj.id].isStart() ? 1 : 0;
+		var flg = SERVERS[parse.query.id].isStart() ? 1 : 0;
 		res.writeHead(200, {'Content-Type':'application/json'});
 		res.end('{"flg":' + flg + '}');
 		return;
@@ -118,13 +120,12 @@ io.sockets.on('connection', function(socket) {
 		
 		var msg;
 		if (obj.msg === 'start') {
-			var flg = SERVERS[obj.id].isReady();
-			if (!flg) return;
+			console.log('start Request')
+			if (SERVERS[obj.id].isStart()) return;
+			console.log('start!')
 			SERVERS[obj.id].start();
-			msg = obj.msg;
 		} else if (obj.msg === 'stop') {
-			var flg = SERVERS[obj.id].isStart();
-			if (!flg) return;
+			if (SERVERS[obj.id].isStop()) return;
 			SERVERS[obj.id].stop();
 		} else {
 			return;
@@ -133,17 +134,18 @@ io.sockets.on('connection', function(socket) {
 	
 	socket.on('setMap', function(obj) {
 		if (socket.room !== 'manager') socket.disconnect();
+		if (SERVERS[obj.id].isStart()) return;
 		
 		var mpmp;
 		try {
-			mpmp = map.GameMap(obj.map);
+			mpmp = new map.GameMap(obj.map);
 		} catch(e) {
-			socket.emit('errorMap', e.message);
+			emitManager('errorMap', e.message);
 			return;
 		}
 		
 		SERVERS[obj.id].setMap(mpmp);
-		socket.emit('getMap', {'name':mpmp.name, 'size':mpmp.size, 'turn':mpmp.turn, 'data':mpmp.data, 'player':mpmp.player, 'item':mpmp.item});
+		emitManager('getMap', {'name':mpmp.name, 'size':mpmp.size, 'turn':mpmp.turn, 'data':mpmp.data, 'player':mpmp.player, 'item':mpmp.item});
 	});
 	
 	
