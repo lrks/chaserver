@@ -77,8 +77,9 @@ class Server:
 		self.cool = Player('C', c_port, host)
 		self.hot = Player('H', h_port, host)
 		
-		for p in [ self.cool, self.hot ]:
-			p.accept()
+		for p in [ self.cool, self.hot ]: p.accept()
+		for p in [ self.cool, self.hot ]: 
+			self.now = p
 			self.__http('POST', 'clientHello', {'side':p.side, 'addr':p.addr[0], 'port':p.addr[1]})
 		for p in [ self.cool, self.hot ]:
 			self.now = p
