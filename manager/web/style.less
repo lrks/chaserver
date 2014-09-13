@@ -1,0 +1,212 @@
+/**************************************************************/
+/*                                                            */
+/*                         style.less                         */
+/*                                                            */
+/**************************************************************/
+/* 色設定 */
+@text:#333; // 全体の文字色
+@bg:#EEE; // メイン背景色
+
+/* その他 */
+@font-size: 15px;
+@side-padding:5%;
+@mincho:'ヒラギノ明朝 Pro W3','Hiragino Mincho Pro','ＭＳ Ｐ明朝','MS PMincho',serif;
+@gochic:"ヒラギノ角ゴ Pro W3", "Hiragino Kaku Gothic ProN", "メイリオ", Meiryo, "ＭＳ Ｐゴシック", "MS PGothic", sans-serif;
+
+/*------------------------------*/
+/*            共通部            */
+/*------------------------------*/
+/* HTML構造に関わる部分 */
+html {
+	margin-bottom:1px;
+	height:100%;
+	width:100%;
+	overflow-y:scroll;
+}
+
+body {
+	background:#EEE;
+	line-height:1.6;
+	font-size:@font-size;
+	color:@text;
+	margin:0;
+	letter-spacing:0.15em;
+	//font-family:@gochic;
+}
+
+/* パーツ */
+a {
+	img { border:0; }
+
+	&:link {
+		color:#274A78;
+		text-decoration:none;
+	}
+	
+	&:visited {
+		color:#6D89AD;
+	}
+
+	&:hover {
+		a:link;
+		text-decoration:underline;
+	}
+}
+
+h1, h2 {
+	margin-top:1em;
+	font-family:@mincho;
+	margin-bottom:0em;
+}
+
+p {
+	margin:5px 0;
+	text-align:justify;
+	text-justify:inter-ideograph;
+	
+	&.indent {
+		text-indent:1em;
+	}
+}
+
+ul {
+	padding-left:2em;
+	margin:0;
+}
+
+label {
+	margin:5px;
+	margin-top:7px;
+}
+
+button {
+	.btn;
+}
+
+input {
+	font-size:110%;
+
+	&[type=text] {
+		padding:5px;
+	}
+}
+
+textarea {
+	padding:5px;
+	overflow-y:scroll;
+	width:98%;
+}
+
+article {
+	border-bottom:1px solid #CCC;
+}
+
+
+/*------------------------------*/
+/*        ページ構成要素        */
+/*------------------------------*/
+/* いろいろ */
+@tex-height:150px;
+
+div#container {
+	width:95%;
+	.boxsizing;
+	background:#FFF;
+	margin:0 auto;
+	padding:0 1em;
+}
+
+div#log {
+	background:#F5F5F5;
+	width:98%;
+	min-height:10em;
+	overflow:scroll;
+	padding:0.5em;
+	
+	p {
+		margin:0;
+	}
+}
+
+
+
+/* スコア */
+table#board {
+	margin:1em auto;
+	border-collapse:collapse;
+	
+	td {
+		border:1px solid #000;
+		padding:5px;
+		width:15px;
+		height:15px;
+		background:#CCC;
+		vertical-align:middle;
+	}
+}
+
+
+
+
+/*------------------------------*/
+/*             関数             */
+/*------------------------------*/
+/* 線形グラデーション */
+.gradient(@s:#fff, @e:#000) {
+	// ふえぇ…早く統一してよぉ…。
+	background: (@s + @e) / 2;
+	background: -webkit-gradient(linear, left top, left bottom, from(@s), to(@e));
+	background: -webkit-linear-gradient(top, @s, @e);
+	background: -moz-linear-gradient(top, @s, @e);
+	background: -o-linear-gradient(top, @s, @e);
+	background: linear-gradient(to bottom, @s, @e); // 要検証
+}
+
+/* アニメーション系 */
+.trans(@arg) {
+	-webkit-transition:@arg;
+	-moz-transition:@arg;
+	-o-transition:@arg;
+	transition:@arg;
+}
+
+/* box-sizing */
+.boxsizing(@arg:border-box) {
+	-moz-box-sizing: @arg;
+	-webkit-box-sizing: @arg;
+	box-sizing: @arg;
+}
+
+/* display:box */
+.boxdisplay {
+	display:-moz-box;
+	display:-webkit-box;
+	display:box;
+}
+
+/* box-flex */
+.boxflex(@arg) {
+	-moz-box-flex:@arg;
+	-webkit-box-flex:@arg;
+	box-flex:@arg;
+}
+
+/* button */
+.btn {
+	color:#3A3A3A;
+	border:1px solid #AAA;
+	background:#E0E0E0;
+	.gradient(#F5F5F5, #D5D5D5);
+	padding:5px 20px 4px;
+	text-shadow:0 1px 0 #FFF;
+	border-radius:4px;
+	box-shadow:0 1px 0 #FFF, inset 0 1px 0 #FFF, inset 0 0 7px rgba(50, 50, 50, 0.1);
+	font-size:110%;
+	font-weight:700;
+	
+	&:active {
+		background:#DDD;
+		.gradient(#D5D5D5, #F5F5F5);
+		box-shadow:0 0 7px #DDD, inset 0 0 7px rgba(255, 255, 255, 0.3);
+	}
+}
