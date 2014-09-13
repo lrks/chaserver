@@ -51,7 +51,11 @@ function handler(req, res) {
 				}
 				var plyer = new player.Player(query.name, query.addr, query.port);
 				SERVERS[query.id].setPlayer(query.side, plyer);
-				emitManager('clientHello',  {'id':query.id, 'side':query.side, 'name':query.name, 'addr':query.addr, 'port':query.port});
+				if (query.name == null) {
+					emitManager('clientHello',  {'id':query.id, 'side':query.side, 'addr':query.addr, 'port':query.port});
+				} else {
+					emitManager('clientHello',  {'id':query.id, 'side':query.side, 'name':query.name});
+				}
 			} else if (parse.pathname === '/serverStart') {
 				emitManager('serverStart', {'id':query.id});
 			} else if (parse.pathname === '/clientRequest') {

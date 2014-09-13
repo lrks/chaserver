@@ -10,6 +10,7 @@ chaserver
 
 * (POST) /clientHello
   - クライアントが繋いできたら言う
+  - ただ繋いだだけのときは「id, side, addr, port」のみ、名前送ってきたら「id, side, name」を送ってくる
   - (body)id : serverHelloしたサーバのID
   - (body)side : C or H
   - (body)name : クライアント名
