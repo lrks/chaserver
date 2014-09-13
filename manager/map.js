@@ -205,10 +205,7 @@ GameMap.prototype.checkEnd = function() {
 	 *  1 => Hの勝ち
 	 *  2 => 引き分け
 	 */
-	
-	console.log('Check C', this.isStuck('C'), this.isDeath('C'));
-	console.log('Check H', this.isStuck('H'), this.isDeath('H'));
-	
+
 	var c_lose = this.isStuck('C') || this.isDeath('C');
 	var h_lose = this.isStuck('H') || this.isDeath('H');
 		

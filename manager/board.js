@@ -24,6 +24,10 @@ Board.prototype.setPlayer = function(side, player) {
 		this.hot = player;
 	}
 }
+Board.prototype.setPlayerName = function(side, name) {
+	var obj = (side === 'C') ? this.cool : this.hot;
+	obj.setName.call(obj, name);
+}
 
 
 /*------------------------------------*/

@@ -31,13 +31,8 @@ $(function() {
 		console.log(obj);
 	});
 	
-	SOCKET.on('getMap', function(obj) {
+	SOCKET.on('setMapResponse', function(obj) {
 		console.log('マップ');
-		console.log(obj);
-	});
-	
-	SOCKET.on('errorMap', function(obj) {
-		console.log('マップエラー');
 		console.log(obj);
 	});
 	
@@ -73,6 +68,6 @@ $(function() {
 	$("#map_button").click(function() {
 		var id = $("#socket_id").val();
 		var map = $("#map_data").val();
-		SOCKET.emit('setMap', {'id':id, 'map':map});
+		SOCKET.emit('setMapRequest', {'id':id, 'map':map});
 	});
 });

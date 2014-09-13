@@ -56,11 +56,11 @@ chaserver
   - obj.msg に start or stop で操作。
   - obj.id でサーバのID指定。
   
-* setMap
+* setMapRequest
   - マップをセット。
   - obj.map に マップデータそのまま
   - obj.id にサーバID
-  - errorMap か getMap イベントを発する
+  - setMapResponse イベントを発する
   
 * disconnect
   - まぁええやろ
@@ -88,12 +88,10 @@ chaserver
 * serverDisconnect
    - 横流し
 
-* getMap
+* setMapRequest
    - setされたマップをパースしてオブジェクトにして通知
-   
-* errorMap
-   - Mapのセットに失敗したとき。
-   
+   - パースできないときは、エラーが入っている。
+
 
 ## TODO
 * 再現機能
