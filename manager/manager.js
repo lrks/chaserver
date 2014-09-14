@@ -110,7 +110,11 @@ function handler(req, res) {
 			return;
 		}
 
-		res.writeHead(200);
+		if (parse.pathname.slice(-4) === '.svg') {
+			res.writeHead(200, {'Content-Type':'image/svg+xml'});
+		} else {
+			res.writeHead(200);
+		}
 		res.end(content);
 	});
 }
@@ -159,12 +163,12 @@ io.sockets.on('connection', function(socket) {
 		try {
 			mpmp = new map.GameMap(obj.map);
 		} catch(e) {
-			emitManager('setMapResponse', {'error':true, 'msg':e.message});
+			emitManager('setMapResponse', {'id':obj.id, 'error':true, 'msg':e.message});
 			return;
 		}
 		
 		SERVERS[obj.id].setMap(mpmp);
-		emitManager('setMapResponse', {'error':false, 'name':mpmp.name, 'size':mpmp.size, 'turn':mpmp.turn, 'data':mpmp.data, 'player':mpmp.player, 'item':mpmp.item});
+		emitManager('setMapResponse', {'id':obj.id, 'error':false, 'name':mpmp.name, 'size':mpmp.size, 'turn':mpmp.turn, 'data':mpmp.data, 'player':mpmp.player, 'item':mpmp.item});
 	});
 	
 	

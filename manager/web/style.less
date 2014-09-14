@@ -4,8 +4,8 @@
 /*                                                            */
 /**************************************************************/
 /* 色設定 */
-@text:#333; // 全体の文字色
-@bg:#EEE; // メイン背景色
+@text:#F5F5F5; // 全体の文字色
+@bg:#444; // メイン背景色
 
 /* その他 */
 @font-size: 15px;
@@ -18,14 +18,14 @@
 /*------------------------------*/
 /* HTML構造に関わる部分 */
 html {
-	margin-bottom:1px;
+	//margin-bottom:1px;
 	height:100%;
 	width:100%;
-	overflow-y:scroll;
+	//overflow-y:scroll;
 }
 
 body {
-	background:#EEE;
+	background:@bg;
 	line-height:1.6;
 	font-size:@font-size;
 	color:@text;
@@ -59,6 +59,13 @@ h1, h2 {
 	margin-bottom:0em;
 }
 
+h1 {
+	border-bottom:1px solid #CCC;
+	padding-bottom:0.1em;
+	margin-bottom:1em;
+	width:50%;
+}
+
 p {
 	margin:5px 0;
 	text-align:justify;
@@ -75,12 +82,7 @@ ul {
 }
 
 label {
-	margin:5px;
-	margin-top:7px;
-}
-
-button {
-	.btn;
+	margin:7px 5px 5px 0;
 }
 
 input {
@@ -95,12 +97,8 @@ textarea {
 	padding:5px;
 	overflow-y:scroll;
 	width:98%;
+	color:@bg;
 }
-
-article {
-	border-bottom:1px solid #CCC;
-}
-
 
 /*------------------------------*/
 /*        ページ構成要素        */
@@ -111,7 +109,6 @@ article {
 div#container {
 	width:95%;
 	.boxsizing;
-	background:#FFF;
 	margin:0 auto;
 	padding:0 1em;
 }
@@ -128,6 +125,16 @@ div#log {
 	}
 }
 
+header#to_score {
+	background:#EEE;
+	color:#444;
+	position:absolute;
+	top:10%;
+	right:10%;
+	padding:2em;
+	cursor:pointer;
+}
+
 
 
 /* スコア */
@@ -137,12 +144,15 @@ table#board {
 	
 	td {
 		border:1px solid #000;
-		padding:5px;
-		width:15px;
-		height:15px;
 		background:#CCC;
 		vertical-align:middle;
 	}
+	
+	td.c { background:url('c.svg'); }
+	td.h { background:url('h.svg'); }
+	td.heart { background:url('heart.svg'); }
+	td.block { background:url('block.svg'); }
+	td.floor { background:#FFF; }
 }
 
 
@@ -191,22 +201,184 @@ table#board {
 	box-flex:@arg;
 }
 
-/* button */
-.btn {
-	color:#3A3A3A;
-	border:1px solid #AAA;
-	background:#E0E0E0;
-	.gradient(#F5F5F5, #D5D5D5);
-	padding:5px 20px 4px;
-	text-shadow:0 1px 0 #FFF;
-	border-radius:4px;
-	box-shadow:0 1px 0 #FFF, inset 0 1px 0 #FFF, inset 0 0 7px rgba(50, 50, 50, 0.1);
-	font-size:110%;
-	font-weight:700;
-	
-	&:active {
-		background:#DDD;
-		.gradient(#D5D5D5, #F5F5F5);
-		box-shadow:0 0 7px #DDD, inset 0 0 7px rgba(255, 255, 255, 0.3);
-	}
+/* Copy from http://cssdeck.com/labs/pressable-css-buttons */
+.button {
+    background-color: #999;
+    background-image: -webkit-linear-gradient(hsla(0,0%,100%,.05), hsla(0,0%,0%,.1));
+    background-image:    -moz-linear-gradient(hsla(0,0%,100%,.05), hsla(0,0%,0%,.1));
+    background-image:     -ms-linear-gradient(hsla(0,0%,100%,.05), hsla(0,0%,0%,.1));
+    background-image:      -o-linear-gradient(hsla(0,0%,100%,.05), hsla(0,0%,0%,.1));
+    background-image:         linear-gradient(hsla(0,0%,100%,.05), hsla(0,0%,0%,.1));
+    border: none;
+    border-radius: .5em;
+    box-shadow: inset 0 0 0 1px hsla(0,0%,0%,.25),
+                inset 0 2px 0 hsla(0,0%,100%,.1),
+                inset 0 1.2em 0 hsla(0,0%,100%,.1),
+                inset 0 -.2em 0 hsla(0,0%,100%,.1),
+                inset 0 -.25em 0 hsla(0,0%,0%,.5);
+    color: #444;
+    cursor: pointer;
+    display: inline-block;
+    font-family: sans-serif;
+    font-size: 1em;
+    font-weight: bold;
+    line-height: 1.5;
+    margin: 0 .5em 1em 0;
+    padding: .5em 1.5em .75em;
+    position: relative;
+    text-decoration: none;
+    text-shadow: 0 1px 1px hsla(0,0%,100%,.25);
+    vertical-align: middle;
+}
+.button:hover {
+    outline: none;
+}
+.button:hover,
+.button:focus {
+    box-shadow: inset 0 0 0 1px hsla(0,0%,0%,.25),
+                inset 0 2px 0 hsla(0,0%,100%,.1),
+                inset 0 1.2em 0 hsla(0,0%,100%,.1),
+                inset 0 -.2em 0 hsla(0,0%,100%,.1),
+                inset 0 -.25em 0 hsla(0,0%,0%,.5),
+                inset 0 0 0 3em hsla(0,0%,100%,.2);
+}
+.button:active {
+    box-shadow: inset 0 0 0 1px hsla(0,0%,0%,.25),
+                inset 0 2px 0 hsla(0,0%,100%,.1),
+                inset 0 1.2em 0 hsla(0,0%,100%,.1),
+                inset 0 0 0 3em hsla(0,0%,100%,.2),
+                inset 0 .25em .5em hsla(0,0%,0%,.05),
+                0 -1px 1px hsla(0,0%,0%,.1);
+    margin-top: .25em;
+    outline: none;
+    padding-bottom: .5em;
+}
+
+/* Light Text */
+
+.lightText {
+    box-shadow: inset 0 0 0 1px hsla(0,0%,0%,.25),
+                inset 0 2px 0 hsla(0,0%,100%,.1),
+                inset 0 1.2em 0 hsla(0,0%,100%,.05),
+                inset 0 -.2em 0 hsla(0,0%,100%,.1),
+                inset 0 -.25em 0 hsla(0,0%,0%,.5),
+                0 .25em .25em hsla(0,0%,0%,.1);
+    color: #fff;
+    text-shadow: 0 -1px 1px hsla(0,0%,0%,.25);
+}
+.lightText:hover,
+.lightText:focus {
+    box-shadow: inset 0 0 0 1px hsla(0,0%,0%,.25),
+                inset 0 2px 0 hsla(0,0%,100%,.1),
+                inset 0 1.2em 0 hsla(0,0%,100%,.05),
+                inset 0 -.2em 0 hsla(0,0%,100%,.1),
+                inset 0 -.25em 0 hsla(0,0%,0%,.5),
+                inset 0 0 0 3em hsla(0,0%,100%,.2),
+                0 .25em .25em hsla(0,0%,0%,.1);
+}
+.lightText:active {
+    box-shadow: inset 0 0 0 1px hsla(0,0%,0%,.25),
+                inset 0 2px 0 hsla(0,0%,100%,.1),
+                inset 0 1.2em 0 hsla(0,0%,100%,.05),
+                inset 0 0 0 3em hsla(0,0%,100%,.2),
+                inset 0 .25em .5em hsla(0,0%,0%,.05),
+                0 -1px 1px hsla(0,0%,0%,.1),
+                0 1px 1px hsla(0,0%,100%,.25);
+}
+
+/* Large */
+
+.large {
+    font-size: 1.25em;
+}
+
+/* Medium */
+
+.medium {
+    font-size: 1em;
+}
+
+/* Small */
+
+.small {
+    font-size: .75em;
+}
+
+/* Regular */
+
+.regular {
+    border-radius: .5em;
+}
+
+/* Square */
+
+.square {
+    border-radius: .25em;
+}
+
+/* Round */
+
+.round {
+    border-radius: 1.25em;
+}
+
+/* Red */
+
+.red {
+    background-color: #ff6c6f;
+}
+
+/* Orange */
+
+.orange {
+    background-color: #f6cf6f;
+}
+
+/* Yellow */
+
+.yellow {
+    background-color: #fff6c6;
+}
+
+/* Green */
+
+.green {
+    background-color: #6fcf6f;
+}
+
+/* Blue */
+
+.blue {
+    background-color: #6fc6ff;
+}
+
+/* Purple */
+
+.purple {
+    background-color: #f6c6ff;
+}
+
+/* White */
+
+.white {
+    background-color: #eee;
+}
+
+/* Grey */
+
+.grey {
+    background-color: #999;
+}
+
+/* Black */
+
+.black {
+    background-color: #444;
+}
+
+/* Custom */
+
+.custom {
+    background-color: #fff0f5; /* Set the button color here */
+    color: #444; /* Remove this for a dark background */
 }

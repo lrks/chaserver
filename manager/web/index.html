@@ -8,22 +8,25 @@
 <body>
 <div id="container">
 	<article id="manager">
+		<header id="to_score" class="button large square white">Score →</header>
+	
 		<h1>Manager</h1>
 		<p><label for="sid">ServerID:</label><input type="text" name="sid" id="sid" /></p>
-		<p>制御可能ID: <span id="servers"></span></p>
+		<p>接続中ID: <span id="servers"></span></p>
 		
 		<h2>試合制御</h2>
-		<p><button id="game_start" class="geme_ctrl">開始</button> <button id="game_stop" class="game_ctrl">強制停止</button></p>
+		<p><button id="game_start" class="game_ctrl button large square white">開始</button> <button id="game_stop" class="game_ctrl button large square white">強制終了</button></p>
 		
-		<h2>マップ送信</h2>
-		<textarea id="map" rows="5"></textarea>
-		<p><button id="map_send">Send</button></p>
+		<h2>マップ</h2>
+		<textarea id="map" rows="5">D&amp;Dすると良いかも(未実装)</textarea>
+		<p><button id="map_send" class="button large square white">送信</button></p>
 		
-		<h2>情報</h2>
+		<h2>生データ</h2>
 		<div id="log"></div>
 	</article>
 
 	<article id="score">
+		<p><span id="c_name"></span><span id="c_item"></span> <span id="turn"></span> <span id="h_name"></span><span id="h_item"></span></p>
 		<table id="board">
 			<tr><td></td><td></td><td></td><td></td><td></td></tr>
 			<tr><td></td><td></td><td></td><td></td><td></td></tr>
