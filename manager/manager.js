@@ -77,6 +77,7 @@ function handler(req, res) {
 				emitManager('clientError', {'id':query.id, 'side':query.side, 'msg':query.msg});
 			} else if (parse.pathname === '/serverDisconnect') {
 				if (!query.id) return error_http(res);
+				if (!SERVERS[query.id]) return error_http(res);
 				SERVERS[query.id].stop();
 				delete SERVERS[query.id]
 				emitManager('serverDisconnect', {'id':query.id});
@@ -143,10 +144,16 @@ io.sockets.on('connection', function(socket) {
 		
 		var msg;
 		if (obj.msg === 'start') {
-			if (SERVERS[obj.id].isStart()) return;
+			if (SERVERS[obj.id].isStart()) {
+				emitManager('gameControlError', {'id':obj.id, 'msg':'Not ready, or already started.'});
+				return;
+			}
 			SERVERS[obj.id].start();
 		} else if (obj.msg === 'stop') {
-			if (SERVERS[obj.id].isStop()) return;
+			if (SERVERS[obj.id].isStop()) {
+				emitManager('gameControlError', {'id':obj.id, 'msg':'Not started.'});
+				return;
+			}
 			SERVERS[obj.id].stop();
 		} else {
 			// noop

@@ -1,104 +1,97 @@
-chaserver
+CHaserver
 =========
 
-## Server から Manager へ(HTTP)
+CHaserのまともなサーバを作ろうと思ったら、微妙なものができた。
 
-* (POST) /serverHello
-  - 最初に繋ぐときに言う
-  - (body)id : 適当に決めたサーバ固有のID
-  - (body)name : サーバの名前
 
-* (POST) /clientHello
-  - クライアントが繋いできたら言う
-  - ただ繋いだだけのときは「id, side, addr, port」のみ、名前送ってきたら「id, side, name」を送ってくる
-  - (body)id : serverHelloしたサーバのID
-  - (body)side : C or H
-  - (body)name : クライアント名
-  - (body)addr : クライアントのアドレス
-  - (body)port : クライアントのポート
+## 構成要素
 
-* (POST) /serverStart
-  - 開始したことを通知する
-  - (body)id : serverHelloしたサーバのID
+* Server
+    - CHaserクライアントからの接続を受け付ける
+	- コマンドをManagerへ横流し
+* Manager
+    - Serverからのコマンドを処理して、クライアント用の結果(1000210222 とか)を返す
+	- Browserからの指示も受ける
+	- 中核
+* Browser
+    - 普通のブラウザ
+	- Managerへ指示
+	- ManagerのManager?
+	- スコアもこっちで表示
 
-* (POST) /clientRequest
-  - クライアントからの電文
-  - (body)id : serverHelloしたサーバのID
-  - (body)side: C or H
-  - (body)cmd : gr とか wd とか pl とか
-  - 「result:01000100222」とかいうJSONを返すので、これをクライアントに教えてあげる
 
-* (POST) /clientError
-  - クライアント側のエラー…のつもりが、サーバエラーでも作動。
-  - (body)id : serverHelloしたサーバのID
-  - (body)side : エラーを起こしたときに処理中だった C or H
-  - (body)msg : 何かの手助けになるかも
+## インストール
 
-* (POST) /serverDisconnect
-  - 終わったら教える。
-  - (body)id : serverHelloしたサーバのID
-  - そのサーバIDは抹消される。
+1. node と npm を入れる
+2. npm で socket.io をインストール
+3. このrepositoryをcone
+4. node manager/manager.js
+5. まともそうなブラウザから http://(hogehoge):3000/ へアクセス
+6. python server/server.py
+7. ブラウザを見ると、「testserverが繋いできた」的なことが書かれているので、「ServerID:testserver」として入力
+8. マップをコピペして送信
+9. CHaserのクライアントから (hogehoge):40000 とか :50000 へ接続
+10. ブラウザの「開始」
+11. 「Score」で眺める
 
-* (GET) /isStart
-  - スタートしたかなーというもの
-  - (query)id : serverHelloしたサーバのID
-  - 「{'flg':0 or 1}」のJSONを返す
-  
-  
-  
-## ブラウザ から Manager へ(Socket.ioイベント)
+## 隠し機能
 
-* connectManager
-  - 繋いできた
-  - Managerが持っているサーバの情報をinitializeイベントで通知
-  
-* gameControl
-  - obj.msg に start or stop で操作。
-  - obj.id でサーバのID指定。
-  
-* setMapRequest
-  - マップをセット。
-  - obj.map に マップデータそのまま
-  - obj.id にサーバID
-  - setMapResponse イベントを発する
-  
-* disconnect
-  - まぁええやろ
-  
-  
-## Manager から ブラウザへ(Socket.ioイベント)
-  
-* serverHello
-   - POSTの serverHello を横流し
-   - bodyはobjになります。以下横流し系は同様。
-   
-* clientHello
-   - 横流し
-   
-* serverStart
-   - 横流し
-   
-* clientRequest
-   - 基本横流し
-   - マップ更新情報などの詳細なレスポンスも追加
+### 管理画面
 
-* clientError
-   - 横流し
-   
-* serverDisconnect
-   - 横流し
+* ログがいっぱい出る
 
-* setMapRequest
-   - setされたマップをパースしてオブジェクトにして通知
-   - パースできないときは、エラーが入っている。
+### Score画面
+
+* M(大文字) を押下すると、元の画面に戻る
+* 試合終了後、「←」を押下すると、1ターン前に戻れる
+* もちろん「→」も使える
+
+### 共通
+
+* ブラウザのコンソールにいろいろ書かれる
+
+
+## 動作確認
+
+あまりやっていません。
+Pythonのバージョンは、2.7系でした。
+
+
+## 既存クライアントとのメリット・デメリット
+
+### メリット
+
+* ブラウザが使えるのでそっち側は環境を選ばない
+* ブラウザはどれだけ繋いでも、常に同じ情報を確認できる
+* サーバプログラムもいくらでも繋げられる
+* 同時に複数試合ができる可能性
+* Python / JavaScript / (CSS) / (HTML) なので、改変しやすい
+* 履歴機能が使えるので、解説しやすい
+
+### デメリット
+
+* まともに動くか分からない
+* 環境構築が面倒臭すぎる
+    - セキュリティ上、「少なくともServerとManagerは同一ホスト、またはFWでガッチリ保護された場所」においておかないとマズそう。	
+* 去年の？CHaserクライアントへの対応が微妙
 
 
 ## TODO
+* ログ機能
+   - Serverにログを吐かせよう
 * 再現機能
-* ステップ実行
-* 履歴機能
-* CHaserの仕様に微妙に沿っていないクライアントへの対応
-* 接続時、リアルタイム受付。
-* Log機能
-* 試合制御に失敗したときの通知
-* ServerID、クリックしたら入力されるとかよさそう
+   - Serverが吐いたログからManager側で再現…が理想？
+   - でも、Serverでログを読んで、再現したほうが実装的には簡単な気がする
+* クライアント接続の改善
+   - どっちも繋いで来ないと、名前が取れない問題
+   - multiprocessingを使うとクライアント側が堕ちてしまった
+* ServerIDの入力改善
+   - さすがに手打ち(or コピペ)は厳しい
+   - 実際は、一つのServerしか繋がって来ない可能性が高い
+   - 一つだけなら暗黙的にそれを入力されたServerIDとするとか
+   - ServerIDをクリックすると、入力とみなすとか
+* Map入力の改善
+   - さすがにコピペは厳しい
+   - たぶんファイル読み込みのAPIも使えるはず
+   - そっちでやったほうが良さそう
+   - Mapが同じなら自動で送信してしまうとか

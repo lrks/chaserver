@@ -9,6 +9,7 @@ $(function() {
 	var HISTORIES = {};
 	var SOCKET = io.connect(null, {port:3000});
 	var SCORE_FLG = false;
+	var HISTORY_MODE = false;
 	SOCKET.emit('connectManager');
 	this.history = [];
 	
@@ -16,16 +17,35 @@ $(function() {
 	/*            Manager side            */
 	/*------------------------------------*/
 	toManager();
+	$(document).keypress(function(e) {
+		if (SCORE_FLG && String.fromCharCode(e.which) != 'M') toManager();
+		return true;
+	});
 	
 	function toManager() {
 		$("#score").hide();
 		$("#manager").show();
+		SCORE_FLG = false;
 	}
 	
 	$("#to_score").click(function() {
-		var id = getServerId();
-		if (id == null) return;
-		toScore(id);
+		if (SCORE_FLG) return;
+	
+		var id = $("#sid").val();
+		if (!id) {
+			noticeConsole('MyError', 'ServerIDが空っぽいのでやめます');
+			return;
+		}
+		
+		window.localStorage.setItem('sid', id);
+	
+		$("#manager").hide();
+		$("#score").show();
+
+		makeTable(id, (!SERVERS[id] || !SERVERS[id].map) ? null : SERVERS[id].map);
+		adjustTable();
+		
+		SCORE_FLG = true;
 	});
 	
 	$(".game_ctrl").click(function() {
@@ -61,26 +81,40 @@ $(function() {
 		adjustTable();
 	});
 	
-	function toScore(sid) {
-		$("#manager").hide();
-		$("#score").show();
+	$(document).keydown(function(e) {
+		if (!SCORE_FLG) return true;
 		
-		makeTable(sid, (!SERVERS[sid] || !SERVERS[sid].map) ? null : SERVERS[sid].map);
-		adjustTable();
+		var id = window.localStorage.getItem('sid');
+		if (SERVERS[id] && SERVERS[id].playing) return true;
+		if (!HISTORIES[id]) return true;
+		var now_turn = parseInt($("#turn").text()) + 1;
+
+		if (e.keyCode === 37) {
+			// Prev
+			if (!HISTORIES[id].history[now_turn + 1]) return true;
+			updateTable(now_turn + 1, id, HISTORIES[id].history[now_turn + 1], true, true);
+		} else if (e.keyCode === 39) {
+			// Next
+			if (!HISTORIES[id].history[now_turn - 1]) return true;
+			updateTable(now_turn - 1, id, HISTORIES[id].history[now_turn - 1], false, true);
+		} else {
+			return true;
+		}
 		
-		SCORE_FLG = true;
-	}
+		HISTORY_MODE = true;
+		return true;
+	});
 	
 	function makeTable(sid, map) {
 		if (SERVERS[sid]) {
-			if (SERVERS[sid].player['C']) $("#c_side .name").text(SERVERS[sid].player['C']);
-			if (SERVERS[sid].player['H']) $("#h_side .name").text(SERVERS[sid].player['H']);
+			if (SERVERS[sid].player['C']) $("#side_c .name").text(SERVERS[sid].player['C']);
+			if (SERVERS[sid].player['H']) $("#side_h .name").text(SERVERS[sid].player['H']);
 		}
 		
 		if (map != null) {
-			$("#turn").text(map.turn);
-			$("#c_side .item").text(map.item['C']);
-			$("#h_side .item").text(map.item['H']);
+			$("#turn").text(map.turn - 1);
+			$("#side_c .item").text(map.item['C']);
+			$("#side_h .item").text(map.item['H']);
 		}
 
 		var col = ((map == null) ? 15 : map.size[0]) + 2;
@@ -140,8 +174,8 @@ $(function() {
 		if (!row) row = 1;
 	
 		var offset = $("#score").offset();
-		var w = ($(window).width() - offset.left * 2) / col;
-		var h = ($(window).height() - offset.top * 2) / row;
+		var w = ($(window).width() - offset.left * 2) / (col + 1);
+		var h = ($(window).height() - offset.top * 3 - $("#turn").outerHeight()) / (row + 1);
 		var size = ~~((w < h) ? w : h) - 2;
 		
 		var slct = board.find("td");
@@ -153,22 +187,28 @@ $(function() {
 		var padding = ($(window).width() - $("#board")) * 0.45;
 		if (padding < 50) padding = 100;
 		var wh = $(window).height();
-		$.each(["#side_C", "#side_h"], function(i, slct_str) {
+		$.each(["#side_c", "#side_h"], function(i, slct_str) {
 			var sh = $(slct_str).height();
 			$(slct_str).css('top', (wh - sh) * 0.5).width(padding);
-		});		
+		});
 	}
 	
-	function updateTable(turn, sid, obj) {
-		var id = getServerId();
+	function updateTable(turn, sid, obj, sub, his) {
+		var id = window.localStorage.getItem('sid');
+		if (sub == null) sub = false;
+		if (his == null) his = false;
+		
+		var object = his ? HISTORIES[sid] : SERVERS[sid];
 		
 		// update of base map	
 		$.each(obj.diff, function(i, val) {
-			SERVERS[sid].map.data[val.idx] += val.add;
+			var d = sub ? -val.add : val.add;
+
+			object.map.data[val.idx] += d;
 			if (id == null || sid != id) return true;
 			
-			var y = ~~(val.idx / SERVERS[sid].map.size[0]);
-			var x = val.idx - (y * SERVERS[sid].map.size[0]);
+			var y = ~~(val.idx / object.map.size[0]);
+			var x = val.idx - (y * object.map.size[0]);
 
 			var slct = $("#board tr").eq(y + 1).find("td").eq(x + 1);			
 			$.each(['floor', 'block', 'item'], function(i, val) {
@@ -176,7 +216,7 @@ $(function() {
 			});
 			
 			var cls = 'block';
-			switch(SERVERS[sid].map.data[val.idx]) {
+			switch(object.map.data[val.idx]) {
 			case 0:
 			case 1:
 				cls = 'floor';
@@ -196,8 +236,8 @@ $(function() {
 		
 		// update of player positon
 		$.each(obj.player, function(side, pos) {
-			var before = [].concat(SERVERS[sid].map.player[side]);
-			SERVERS[sid].map.player[side] = pos;
+			var before = [].concat(object.map.player[side]);
+			object.map.player[side] = pos;
 		
 			if (id == null || sid != id) return true;
 		
@@ -210,8 +250,9 @@ $(function() {
 		// update item and turn
 		if (id == null || sid != id) return;
 		$("#turn").text(turn - 1);
-		$("#c_side .item").text(obj.item['C']);
-		$("#h_side .item").text(obj.item['H']);
+		object.map.turn = turn;
+		$("#side_c .item").text(obj.item['C']);
+		$("#side_h .item").text(obj.item['H']);
 	}
 	
 	function timeMachine(turn, sid, obj) {
@@ -264,7 +305,15 @@ $(function() {
 	
 	SOCKET.on('clientHello', function(obj) {
 		var str = obj.name ? obj.name : obj.addr+":"+obj.port;
-		if (obj.name) SERVERS[obj.id].player[obj.side] = obj.name;
+		if (obj.name) {
+			SERVERS[obj.id].player[obj.side] = obj.name;
+			
+			if (SCORE_FLG && window.localStorage.getItem('sid') == obj.id) {
+				var slct_str = (obj.side == 'C') ? 'c' : 'h';
+				$("#side_"+slct_str+" .name").text(obj.name);
+			}
+		}
+
 		noticeConsole('clientHello', obj.id+":"+str);
 	});
 	
@@ -282,14 +331,20 @@ $(function() {
 		SERVERS[obj.id].setMap(map);
 		noticeConsole('RecieveMap', obj.id+", ("+obj.name+")");
 		
-		if ($("#sid").val() == obj.id && SCORE_FLG) {
-			makeTable(obj.id, (!SERVERS[sid] || !SERVERS[sid].map) ? null : SERVERS[sid].map);
+		if (SCORE_FLG && window.localStorage.getItem('sid') == obj.id) {
+			if (HISTORY_MODE && !(window.confirm('マップ更新が来ました。更新しますか？'))) return;
+
+			makeTable(obj.id, (!SERVERS[obj.id] || !SERVERS[obj.id].map) ? null : SERVERS[obj.id].map);
 			adjustTable();
+			
+			HISTORY_MODE = false;
+			if (HISTORIES[obj.id]) delete HISTORIES[obj.id];
 		}
 	});
 	
 	SOCKET.on('serverDisconnect', function(obj) {
 		noticeConsole('serverDisconnect', obj.id);
+		HISTORIES[obj.id].map = $.extend(true, {}, SERVERS[obj.id].map);
 		if (SERVERS[obj.id]) { delete SERVERS[obj.id]; }
 		updateServerList();
 	});
@@ -298,7 +353,11 @@ $(function() {
 		SERVERS[obj.id].playing = true;
 		noticeConsole('gameStart', obj.id);
 		
-		HISTORIES[obj.id] = [];
+		HISTORIES[obj.id] = {'map':SERVERS[obj.id].map, 'history':[]};
+	});
+	
+	SOCKET.on('gameControlError', function(obj) {
+		noticeConsole('controlError', obj.id + ", " + obj.msg);
 	});
 	
 	SOCKET.on('initialize', function(obj) {
@@ -310,7 +369,7 @@ $(function() {
 			}
 			if (sv.start_flg) {
 				new_server.playing = true;
-				HISTORIES[obj.id] = [];
+				HISTORIES[obj.id] = {'map':new_server.map, 'history':[]};
 				noticeConsole('gameStart@init', sid);
 			}
 			
@@ -323,19 +382,17 @@ $(function() {
 	
 	SOCKET.on('clientRequest', function(obj) {
 		SERVERS[obj.id].playing = true;
-		noticeConsole('clientCommand', obj.id+":("+obj.side+")"+obj.cmd+" -> "+((obj.res.state == -1) ? '1' : '0') + obj.res.data.join(''));
-		if (obj.cmd === "gr") return;
-
-		HISTORIES[obj.id][obj.res.turn] = {'diff':obj.res.diff, 'player':obj.res.player, 'item':obj.res.item};
-		updateTable(obj.res.turn, obj.id, HISTORIES[obj.id][obj.res.turn]);
+		noticeConsole('clientCommand', obj.id+":("+obj.side+")"+obj.cmd+" is "+((obj.res.state == -1) ? '1' : '0') + obj.res.data.join(''));
 		
-		var id = getServerId();
-		if (id == null || id != obj.id) return;
-		$("#result").text(
-			(obj.res.state == -1) ? '試合中' :
-			(obj.res.state == 0) ? 'Cの勝ち' :
-			(obj.res.state == 1) ? 'Hの勝ち' :
-			(obj.res.state == 2) ? '引き分け' : '不正');
+		if (obj.cmd !== "gr") HISTORIES[obj.id].history[obj.res.turn] = {'diff':obj.res.diff, 'player':obj.res.player, 'item':obj.res.item};
+		if (SCORE_FLG && window.localStorage.getItem('sid') == obj.id) {
+			if (obj.cmd !== "gr") updateTable(obj.res.turn, obj.id, HISTORIES[obj.id].history[obj.res.turn]);
+			$("#result").text(
+				(obj.res.state == -1) ? '試合中' :
+				(obj.res.state == 0) ? 'Cの勝ち' :
+				(obj.res.state == 1) ? 'Hの勝ち' :
+				(obj.res.state == 2) ? '引き分け' : '不正');
+		}
 	});
 	
 	
@@ -346,7 +403,7 @@ $(function() {
 	
 	function noticeConsole(event, msg) {
 		var time = new Date();
-		var str = "<p>("+zf2(time.getHours())+":"+zf2(time.getMinutes())+":"+zf2(time.getSeconds())+"): "+msg+"</p>";
+		var str = "<p>("+zf2(time.getHours())+":"+zf2(time.getMinutes())+":"+zf2(time.getSeconds())+"): "+event+" - "+msg+"</p>";
 		$("#log").prepend(str);
 		console.log(event, msg);
 	}

@@ -104,7 +104,7 @@ GameMap.prototype.chaserData = function(plyer, callback) {
 		} else if (!(0 <= position[1] && position[1] < this.size[1])) {
 			data[i] = TYPE_BLOCK;
 		} else {
-			if (isCharactor(position[0], position[1], this.player['C']) || isCharactor(position[0], position[1], this.player['H'])) {
+			if ((position[0] === this.player['C'][0] && position[1] === this.player['C'][1]) || (position[0] === this.player['H'][0] && position[1] === this.player['H'][1])) {
 				data[i] = TYPE_CHARACTOR;
 			} else {
 				data[i] = this.getData(position[0], position[1]);
@@ -156,11 +156,11 @@ GameMap.prototype.walkPlayer = function(plyer, position) {
 	}
 	
 	if (this.getData(position[0], position[1]) === TYPE_ITEM) {
-		this.item[side] += 1;
+		this.item[plyer] += 1;
 		this.setData(now[0], now[1], TYPE_BLOCK);
+		this.setData(position[0], position[1], TYPE_FLOOR);
 	}
 	
-	this.setData(position[0], position[1], TYPE_CHARACTOR);
 	this.player[plyer] = position;
 }
 
@@ -235,10 +235,5 @@ GameMap.prototype.getAllData = function() { return this.data; }
 GameMap.prototype.getPlayerPosition = function() { return {'C':this.player['C'], 'H':this.player['H']}; }
 GameMap.prototype.getItem = function() { return {'C':this.item['C'], 'H':this.item['H']}; }
 
-
-/*------------------------------------*/
-/*          Private function          */
-/*------------------------------------*/
-function isCharactor(x, y, plyer_pos) { return (plyer_pos[0] === x && plyer_pos[1] === y); }
 
 module.exports = { GameMap: GameMap }

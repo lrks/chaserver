@@ -97,7 +97,6 @@ textarea {
 	padding:5px;
 	overflow-y:scroll;
 	width:98%;
-	p { color:@bg; }
 }
 
 /*------------------------------*/
@@ -119,6 +118,9 @@ div#log {
 	min-height:10em;
 	overflow:scroll;
 	padding:0.5em;
+	max-height:20em;
+	overflow:scroll;
+	color:@bg;
 	
 	p {
 		margin:0;
@@ -158,7 +160,7 @@ table#board {
 }
 
 .side {
-	background:#AAA;
+	background:#888;
 	border:1px solid #DDD;
 	border-radius:3px;
 	width:10%;
@@ -168,11 +170,11 @@ table#board {
 	padding:0.5em;
 }
 
-#c_side {
+#side_c {
 	left:0;
 }
 
-#h_side {
+#side_h {
 	right:0;
 }
 

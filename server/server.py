@@ -96,6 +96,7 @@ class Server:
 		cool_end = False
 		hot_end = False
 	
+		interval = 1
 		while not (cool_end and hot_end):
 			for p in [ self.cool, self.hot ]:
 				if cool_end and p == self.cool: continue
@@ -117,7 +118,8 @@ class Server:
 				#  cmd
 				cmd = p.cmd()
 				if cmd is None: raise SyntaxError
-				time.sleep(1)
+				interval = interval * 0.99
+				time.sleep(interval)
 				run_flg = self.__exchange(p, cmd)
 				if not run_flg:
 					if p == self.cool:
