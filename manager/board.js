@@ -52,7 +52,7 @@ Board.prototype.isStop = function() { return !this.isStart(); }
 Board.prototype.command = function(side, cmd) {
 	var obj = {};
 	obj.state = this.isStart() ? this.map.checkEnd() : 2;
-	var before = this.map.getAllData();
+	var before = [].concat(this.map.getAllData());
 	var f;
 	
 	// run command

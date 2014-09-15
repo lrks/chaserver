@@ -97,7 +97,7 @@ textarea {
 	padding:5px;
 	overflow-y:scroll;
 	width:98%;
-	color:@bg;
+	p { color:@bg; }
 }
 
 /*------------------------------*/
@@ -146,16 +146,16 @@ table#board {
 		border:1px solid #000;
 		background:#CCC;
 		vertical-align:middle;
+		background-color:#FFF;
+		background-size:contain;
 	}
 	
-	td.c { background:url('c.svg'); }
-	td.h { background:url('h.svg'); }
-	td.heart { background:url('heart.svg'); }
-	td.block { background:url('block.svg'); }
-	td.floor { background:#FFF; }
+	td.c { background-image:url('c.svg'); }
+	td.h { background-image:url('h.svg'); }
+	td.item { background-image:url('heart.svg'); }
+	td.block { background-image:url('block.svg'); }
+	td.floor { background-color:#FFF; }
 }
-
-
 
 
 /*------------------------------*/

@@ -25,7 +25,7 @@ $(function() {
 	$("#to_score").click(function() {
 		var id = getServerId();
 		if (id == null) return;
-		toScore(sid);
+		toScore(id);
 	});
 	
 	$(".game_ctrl").click(function() {
@@ -65,6 +65,9 @@ $(function() {
 		$("#manager").hide();
 		$("#score").show();
 		
+		console.log(sid);
+		console.log(SERVERS);
+		console.log(SERVERS[sid]);
 		makeTable(sid, (!SERVERS[sid] || !SERVERS[sid].map) ? null : SERVERS[sid].map);
 		adjustTable();
 		
@@ -94,6 +97,8 @@ $(function() {
 			for (var j=0; j<col; j++) {
 				var cls = 'floor';
 				if (map == null) {
+					cls = 'block';
+				} else if ((i == 0 || i == row - 1) || (j == 0 || j == col - 1)) {
 					cls = 'block';
 				} else {
 					var d = map.data[(i - 1) * map.size[0] + (j - 1)];
@@ -150,16 +155,18 @@ $(function() {
 	}
 	
 	function updateTable(turn, sid, obj) {
-		// update of base map
+		console.log("オブジェクトは", obj);
+		
+		// update of base map	
 		$.each(obj.diff, function(i, val) {
 			SERVERS[sid].map.data[val.idx] += val.add;
 			
 			var y = ~~(val.idx / SERVERS[sid].map.size[0]);
 			var x = val.idx - (y * SERVERS[sid].map.size[0]);
-			console.log('変更', x, y);
+			console.log('変更', x, y, val.add, SERVERS[sid].map.data[val.idx]);
 			var slct = $("#board tr").eq(y + 1).find("td").eq(x + 1);
 			
-			$.each(['floor', 'block', 'c', 'h', 'item'], function(i, val) {
+			$.each(['floor', 'block', 'item'], function(i, val) {
 				if (slct.hasClass(val)) {
 					console.log(val, '消したんやで');
 					slct.removeClass(val);
@@ -169,6 +176,7 @@ $(function() {
 			var cls = 'block';
 			switch(SERVERS[sid].map.data[val.idx]) {
 			case 0:
+			case 1:
 				cls = 'floor';
 				break;
 			case 2:
@@ -182,14 +190,20 @@ $(function() {
 			}
 			
 			slct.addClass(cls);
-			console.log(cls 'セットしたんやで');
+			console.log(cls, 'セットしたんやで');
 		});
 		
 		// update of player positon
 		$.each(obj.player, function(side, pos) {
-			var slct = $("#board tr").eq(pos[1] + 1).find("td").eq(pos[0] + 1);
-			slct.addClass((side === 'C') ? 'c' : 'h');
-			console.log(side 'は', pos[0], pos[1]);
+			var cls = (side === 'C') ? 'c' : 'h';
+		
+			var before = SERVERS[sid].map.player[side];
+			$("#board tr").eq(before[1] + 1).find("td").eq(before[0] + 1).removeClass(cls);
+			
+			SERVERS[sid].map.player[side] = pos;
+			slct = $("#board tr").eq(pos[1] + 1).find("td").eq(pos[0] + 1).addClass(cls);
+			
+			console.log(side, 'は', pos[0], pos[1]);
 		});
 		
 		
@@ -310,6 +324,8 @@ $(function() {
 		SERVERS[obj.id].playing = true;
 		noticeConsole('clientCommand', obj.id+":("+obj.side+")"+obj.cmd+" -> "+((obj.res.state == -1) ? '1' : '0') + obj.res.data.join(''));
 		if (obj.cmd === "gr") return;
+		
+		console.log("基データ", obj);
 		
 		HISTORIES[obj.res.turn] = {'diff':obj.res.diff, 'player':obj.res.player, 'item':obj.res.item};
 		updateTable(obj.res.turn, obj.id, HISTORIES[obj.res.turn]);
