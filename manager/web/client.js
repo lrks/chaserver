@@ -65,9 +65,6 @@ $(function() {
 		$("#manager").hide();
 		$("#score").show();
 		
-		console.log(sid);
-		console.log(SERVERS);
-		console.log(SERVERS[sid]);
 		makeTable(sid, (!SERVERS[sid] || !SERVERS[sid].map) ? null : SERVERS[sid].map);
 		adjustTable();
 		
@@ -75,17 +72,15 @@ $(function() {
 	}
 	
 	function makeTable(sid, map) {
-		console.log("てーぶるつくるよー");
-		console.log(map);
 		if (SERVERS[sid]) {
-			if (SERVERS[sid].player['C']) $("#c_name").text(SERVERS[sid].player['C']);
-			if (SERVERS[sid].player['H']) $("#h_name").text(SERVERS[sid].player['H']);
+			if (SERVERS[sid].player['C']) $("#c_side .name").text(SERVERS[sid].player['C']);
+			if (SERVERS[sid].player['H']) $("#h_side .name").text(SERVERS[sid].player['H']);
 		}
 		
 		if (map != null) {
 			$("#turn").text(map.turn);
-			$("#c_item").text(map.item['C']);
-			$("#h_item").text(map.item['H']);
+			$("#c_side .item").text(map.item['C']);
+			$("#h_side .item").text(map.item['H']);
 		}
 
 		var col = ((map == null) ? 15 : map.size[0]) + 2;
@@ -132,11 +127,11 @@ $(function() {
 			data += line;
 		}
 		
-		console.log(data);
 		$("#board").html(data);
 	}
 	
 	function adjustTable() {
+		// Table
 		var board = $("#board");
 		var col = board.find("tr").eq(1).find("td").length;
 		var row = board.find("tr").length;
@@ -147,30 +142,37 @@ $(function() {
 		var offset = $("#score").offset();
 		var w = ($(window).width() - offset.left * 2) / col;
 		var h = ($(window).height() - offset.top * 2) / row;
-		var size = ~~((w < h) ? w : h);
+		var size = ~~((w < h) ? w : h) - 2;
 		
 		var slct = board.find("td");
 		slct.width(size);
 		slct.height(size);
+		
+		
+		// Player
+		var padding = ($(window).width() - $("#board")) * 0.45;
+		if (padding < 50) padding = 100;
+		var wh = $(window).height();
+		$.each(["#side_C", "#side_h"], function(i, slct_str) {
+			var sh = $(slct_str).height();
+			$(slct_str).css('top', (wh - sh) * 0.5).width(padding);
+		});		
 	}
 	
 	function updateTable(turn, sid, obj) {
-		console.log("オブジェクトは", obj);
+		var id = getServerId();
 		
 		// update of base map	
 		$.each(obj.diff, function(i, val) {
 			SERVERS[sid].map.data[val.idx] += val.add;
+			if (id == null || sid != id) return true;
 			
 			var y = ~~(val.idx / SERVERS[sid].map.size[0]);
 			var x = val.idx - (y * SERVERS[sid].map.size[0]);
-			console.log('変更', x, y, val.add, SERVERS[sid].map.data[val.idx]);
-			var slct = $("#board tr").eq(y + 1).find("td").eq(x + 1);
-			
+
+			var slct = $("#board tr").eq(y + 1).find("td").eq(x + 1);			
 			$.each(['floor', 'block', 'item'], function(i, val) {
-				if (slct.hasClass(val)) {
-					console.log(val, '消したんやで');
-					slct.removeClass(val);
-				}
+				if (slct.hasClass(val)) slct.removeClass(val);
 			});
 			
 			var cls = 'block';
@@ -190,27 +192,26 @@ $(function() {
 			}
 			
 			slct.addClass(cls);
-			console.log(cls, 'セットしたんやで');
 		});
 		
 		// update of player positon
 		$.each(obj.player, function(side, pos) {
-			var cls = (side === 'C') ? 'c' : 'h';
-		
-			var before = SERVERS[sid].map.player[side];
-			$("#board tr").eq(before[1] + 1).find("td").eq(before[0] + 1).removeClass(cls);
-			
+			var before = [].concat(SERVERS[sid].map.player[side]);
 			SERVERS[sid].map.player[side] = pos;
+		
+			if (id == null || sid != id) return true;
+		
+			var cls = (side === 'C') ? 'c' : 'h';
+			$("#board tr").eq(before[1] + 1).find("td").eq(before[0] + 1).removeClass(cls);
 			slct = $("#board tr").eq(pos[1] + 1).find("td").eq(pos[0] + 1).addClass(cls);
-			
-			console.log(side, 'は', pos[0], pos[1]);
 		});
 		
 		
 		// update item and turn
-		$("#turn").text(turn);
-		$("#c_item").text(obj.item['C']);
-		$("#h_item").text(obj.item['H']);
+		if (id == null || sid != id) return;
+		$("#turn").text(turn - 1);
+		$("#c_side .item").text(obj.item['C']);
+		$("#h_side .item").text(obj.item['H']);
 	}
 	
 	function timeMachine(turn, sid, obj) {
@@ -324,11 +325,17 @@ $(function() {
 		SERVERS[obj.id].playing = true;
 		noticeConsole('clientCommand', obj.id+":("+obj.side+")"+obj.cmd+" -> "+((obj.res.state == -1) ? '1' : '0') + obj.res.data.join(''));
 		if (obj.cmd === "gr") return;
+
+		HISTORIES[obj.id][obj.res.turn] = {'diff':obj.res.diff, 'player':obj.res.player, 'item':obj.res.item};
+		updateTable(obj.res.turn, obj.id, HISTORIES[obj.id][obj.res.turn]);
 		
-		console.log("基データ", obj);
-		
-		HISTORIES[obj.res.turn] = {'diff':obj.res.diff, 'player':obj.res.player, 'item':obj.res.item};
-		updateTable(obj.res.turn, obj.id, HISTORIES[obj.res.turn]);
+		var id = getServerId();
+		if (id == null || id != obj.id) return;
+		$("#result").text(
+			(obj.res.state == -1) ? '試合中' :
+			(obj.res.state == 0) ? 'Cの勝ち' :
+			(obj.res.state == 1) ? 'Hの勝ち' :
+			(obj.res.state == 2) ? '引き分け' : '不正');
 	});
 	
 	
