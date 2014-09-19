@@ -33,16 +33,10 @@ Board.prototype.setPlayerName = function(side, name) {
 /*------------------------------------*/
 /*               Control              */
 /*------------------------------------*/
-function isReady(cool, hot, map) {
-	if (cool == null) return false;
-	if (hot == null) return false;
-	if (map == null) return false;
-	return true;
-}
-
 Board.prototype.start = function() { this.start_flg = true; }
 Board.prototype.stop = function() { this.start_flg = false; }
-Board.prototype.isStart = function() { return (isReady(this.cool, this.hot, this.map) && this.start_flg); }
+Board.prototype.isReady = function() { return (!(this.cool == null) && !(this.hot == null) && !(this.map == null)); }
+Board.prototype.isStart = function() { return (this.isReady() && this.start_flg); }
 Board.prototype.isStop = function() { return !this.isStart(); }
 
 

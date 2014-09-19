@@ -141,13 +141,20 @@ io.sockets.on('connection', function(socket) {
 	socket.on('gameControl', function(obj) {
 		if (socket.room !== 'manager') socket.disconnect();
 		if (!obj.id || !obj.msg) return;
+
 		
 		var msg;
 		if (obj.msg === 'start') {
-			if (SERVERS[obj.id].isStart()) {
-				emitManager('gameControlError', {'id':obj.id, 'msg':'Not ready, or already started.'});
+			if (!SERVERS[obj.id].isReady()) {
+				emitManager('gameControlError', {'id':obj.id, 'msg':'Not ready.'});
 				return;
 			}
+			
+			if (SERVERS[obj.id].isStart()) {
+				emitManager('gameControlError', {'id':obj.id, 'msg':'already started.'});
+				return;
+			}
+
 			SERVERS[obj.id].start();
 		} else if (obj.msg === 'stop') {
 			if (SERVERS[obj.id].isStop()) {

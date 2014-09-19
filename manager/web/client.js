@@ -61,6 +61,7 @@ $(function() {
 			return;
 		}
 	
+		console.log('gameControl');
 		SOCKET.emit('gameControl', {'id':id, 'msg':msg});
 	});
 	
@@ -371,6 +372,7 @@ $(function() {
 	});
 	
 	SOCKET.on('gameControlError', function(obj) {
+		console.log('majikayo');
 		noticeConsole('controlError', obj.id + ", " + obj.msg);
 	});
 	

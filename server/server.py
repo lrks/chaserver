@@ -42,7 +42,7 @@ class Player:
 		
 		# CHaserConnect.rb 対応
 		if self.port == 40000 or self.port == 50000:
-			name = unicode(name, 'shift-jis')
+			name = unicode(name, 'cp932')
 			name = name.encode('utf-8')
 		
 		if name == "":
@@ -125,6 +125,7 @@ class Server:
 				cmd = p.cmd()
 				if cmd is None: raise SyntaxError
 				interval = interval * 0.99
+				if interval < 0.1: interval = 0.1
 				time.sleep(interval)
 				run_flg = self.__exchange(p, cmd)
 				if not run_flg:
@@ -194,6 +195,7 @@ if __name__ == '__main__':
 	# Game start
 	while True:
 		game = Server(ID)
+
 		try:
 			game.prepare(URL, NAME, COOL_PORT, HOT_PORT, HOST)
 			game.zoi()
@@ -208,4 +210,5 @@ if __name__ == '__main__':
 			traceback.print_exc
 		finally:
 			game.cleanup()
+			sys.stderr.write("Rebooting...\n")
 			time.sleep(5)
