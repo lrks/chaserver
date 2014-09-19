@@ -276,11 +276,14 @@ $(function() {
 	
 	function updateServerList() {
 		var svs = [];
+		var last = '';
 		$.each(SERVERS, function(id, sv) {
 			svs.push(id + "("+sv.name+")");
+			last = id;
 		});
 		
 		$("#servers").text(svs.join(', '));
+		$("#sid").val(last);
 	}
 	
 	var Map = function(name, size, turn, data, player, item) {
