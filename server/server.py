@@ -14,6 +14,7 @@ import random
 import string
 import requests
 import json
+import sys
 
 
 #--------------------------------------#
@@ -55,7 +56,6 @@ class Player:
 	
 	def __recv(self):
 		str = self.conn.recv(4)
-		print 'RECV!', str
 		if len(str) < 2: return None
 		return str[0:2]
 
@@ -135,25 +135,31 @@ class Server:
 	def __exchange(self, p, cmd):
 		recv = self.__http('POST', 'clientRequest', {'side':p.side, 'cmd':cmd})['result']
 		if len(recv) != 10: raise SyntaxError
-		print p, cmd, recv
 		p.conn.sendall(recv + "\r\n")
-		print "お返事", recv
 		return recv[0] == '1'
 	
 	def __http(self, method, path, query=None):
 		url = "%s%s" % (self.url, path)
 		if query is None: query = {}
 		query.update({'id':self.id})
-		print url, query
 		if method == 'POST':
 			r = requests.post(url, data=query)
 		else:
 			r = requests.get(url, params=query)
-		print r, r.text
-		return json.loads(r.text)
+			
+		ret = json.loads(r.text)
+		
+		# Logging
+		if path == 'clientHello' and 'name' in query:
+			print "%s:%s:%s" % (path, query['side'], query['name'])
+		elif path == 'clientRequest':
+			print "%s:%s:%s:%s" % (path, query['side'], query['cmd'], ret['result'])
+		
+		return ret
+		
 		
 	def error(self, err):
-		print err
+		sys.stderr.write(err + "\n")
 		self.__http('POST', 'clientError', {'side':self.now.side, 'msg':err})
 	
 	def cleanup(self):
@@ -185,13 +191,13 @@ if __name__ == '__main__':
 			game.zoi()
 		except socket.error:
 			game.error('Socket Error')
-			print traceback.format_exc()
+			traceback.print_exc
 		except SyntaxError:
 			game.error('Command Error')
-			print traceback.format_exc()
+			traceback.print_exc
 		except Exception:
 			game.error('Unknown Error')
-			print traceback.format_exc()
+			traceback.print_exc
 		finally:
 			game.cleanup()
 			time.sleep(5)
