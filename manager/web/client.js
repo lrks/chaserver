@@ -72,6 +72,17 @@ $(function() {
 		SOCKET.emit('setMapRequest', {'id':id, 'map':map});
 	});
 	
+	$("#map_file").change(function(){
+		if (!this.files.length) return;
+		var file = this.files[0];
+		
+		var fr = new FileReader();		
+		fr.onload(function(ev) {
+			$("#map").val(fr.result);
+		});
+		fr.readAsText(fr);
+	});
+	
 	
 	/*------------------------------------*/
 	/*             Score side             */
