@@ -77,10 +77,10 @@ $(function() {
 		var file = this.files[0];
 		
 		var fr = new FileReader();		
-		fr.onload(function(ev) {
+		fr.onload = function(ev) {
 			$("#map").val(fr.result);
-		});
-		fr.readAsText(fr);
+		};
+		fr.readAsText(file);
 	});
 	
 	

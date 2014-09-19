@@ -150,7 +150,9 @@ class Server:
 		ret = json.loads(r.text)
 		
 		# Logging
-		if path == 'clientHello' and 'name' in query:
+		if path == 'serverHello' or path == 'serverDisconnect':
+			print "%s:%s" % (path, query['id'])
+		elif path == 'clientHello' and 'name' in query:
 			print "%s:%s:%s" % (path, query['side'], query['name'])
 		elif path == 'clientRequest':
 			print "%s:%s:%s:%s" % (path, query['side'], query['cmd'], ret['result'])

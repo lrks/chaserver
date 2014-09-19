@@ -224,8 +224,8 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="7.9195959"
-     inkscape:cx="0.12384546"
-     inkscape:cy="30.674926"
+     inkscape:cx="13.718678"
+     inkscape:cy="25.789593"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -256,7 +256,7 @@
      id="layer1"
      transform="translate(-288,-308.93362)">
     <rect
-       style="fill:none;stroke:#808080;stroke-opacity:1"
+       style="fill:#b3b3b3;stroke:#ffffff;stroke-opacity:1"
        id="rect3001"
        width="30.357143"
        height="11.428572"
@@ -270,11 +270,11 @@
        height="11.428572"
        width="30.357143"
        id="rect3773"
-       style="fill:none;stroke:#808080;stroke-opacity:1"
+       style="fill:#b3b3b3;stroke:#ffffff;stroke-opacity:1"
        clip-path="url(#clipPath3943)"
        transform="translate(92.681488,-9.3439374)" />
     <rect
-       style="fill:none;stroke:#808080;stroke-opacity:1"
+       style="fill:#b3b3b3;stroke:#ffffff;stroke-opacity:1"
        id="rect3775"
        width="30.357143"
        height="11.428572"
@@ -288,11 +288,11 @@
        height="11.428572"
        width="30.357143"
        id="rect3777"
-       style="fill:none;stroke:#808080;stroke-opacity:1"
+       style="fill:#b3b3b3;stroke:#ffffff;stroke-opacity:1"
        clip-path="url(#clipPath3935)"
        transform="translate(92.681488,-9.3439374)" />
     <rect
-       style="fill:none;stroke:#808080;stroke-opacity:1"
+       style="fill:#b3b3b3;stroke:#ffffff;stroke-opacity:1"
        id="rect3779"
        width="30.357143"
        height="11.428572"
@@ -306,11 +306,11 @@
        height="11.428572"
        width="30.357143"
        id="rect3781"
-       style="fill:none;stroke:#808080;stroke-opacity:1"
+       style="fill:#b3b3b3;stroke:#ffffff;stroke-opacity:1"
        clip-path="url(#clipPath3927)"
        transform="translate(92.681488,-9.3439374)" />
     <rect
-       style="fill:none;stroke:#808080;stroke-opacity:1"
+       style="fill:#b3b3b3;stroke:#ffffff;stroke-opacity:1"
        id="rect3783"
        width="30.357143"
        height="11.428572"
@@ -324,11 +324,11 @@
        height="11.428572"
        width="30.357143"
        id="rect3785"
-       style="fill:none;stroke:#808080;stroke-opacity:1"
+       style="fill:#b3b3b3;stroke:#ffffff;stroke-opacity:1"
        clip-path="url(#clipPath3919)"
        transform="translate(92.681488,-9.3439374)" />
     <rect
-       style="fill:none;stroke:#808080;stroke-opacity:1"
+       style="fill:#b3b3b3;stroke:#ffffff;stroke-opacity:1"
        id="rect3787"
        width="30.357143"
        height="11.428572"
@@ -342,11 +342,11 @@
        height="11.428572"
        width="30.357143"
        id="rect3789"
-       style="fill:none;stroke:#808080;stroke-opacity:1"
+       style="fill:#b3b3b3;stroke:#ffffff;stroke-opacity:1"
        clip-path="url(#clipPath3911)"
        transform="translate(92.681488,-9.3439374)" />
     <rect
-       style="fill:none;stroke:#808080;stroke-opacity:1"
+       style="fill:#b3b3b3;stroke:#ffffff;stroke-opacity:1"
        id="rect3791"
        width="30.357143"
        height="11.428572"
@@ -360,11 +360,11 @@
        height="11.428572"
        width="30.357143"
        id="rect3793"
-       style="fill:none;stroke:#808080;stroke-opacity:1"
+       style="fill:#b3b3b3;stroke:#ffffff;stroke-opacity:1"
        clip-path="url(#clipPath3903)"
        transform="translate(92.681488,-9.3439374)" />
     <rect
-       style="fill:none;stroke:#808080;stroke-opacity:1"
+       style="fill:#b3b3b3;stroke:#ffffff;stroke-opacity:1"
        id="rect3795"
        width="30.357143"
        height="11.428572"
@@ -378,11 +378,11 @@
        height="11.428572"
        width="30.357143"
        id="rect3797"
-       style="fill:none;stroke:#808080;stroke-opacity:1"
+       style="fill:#b3b3b3;stroke:#ffffff;stroke-opacity:1"
        clip-path="url(#clipPath3895)"
        transform="translate(92.681488,-9.3439374)" />
     <rect
-       style="fill:none;stroke:#808080;stroke-opacity:1"
+       style="fill:#b3b3b3;stroke:#ffffff;stroke-opacity:1"
        id="rect3799"
        width="30.357143"
        height="11.428572"
@@ -396,11 +396,11 @@
        height="11.428572"
        width="30.357143"
        id="rect3801"
-       style="fill:none;stroke:#808080;stroke-opacity:1"
+       style="fill:#b3b3b3;stroke:#ffffff;stroke-opacity:1"
        clip-path="url(#clipPath3887)"
        transform="translate(92.681488,-9.3439374)" />
     <rect
-       style="fill:none;stroke:#808080;stroke-opacity:1"
+       style="fill:#b3b3b3;stroke:#ffffff;stroke-opacity:1"
        id="rect3803"
        width="30.357143"
        height="11.428572"
@@ -414,7 +414,7 @@
        height="11.428572"
        width="30.357143"
        id="rect3805"
-       style="fill:none;stroke:#808080;stroke-opacity:1"
+       style="fill:#b3b3b3;stroke:#ffffff;stroke-opacity:1"
        clip-path="url(#clipPath3879)"
        transform="translate(92.681488,-9.3439374)" />
   </g>
