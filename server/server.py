@@ -38,7 +38,13 @@ class Player:
 		self.addr = addr
 		
 	def nameget(self):
-		name = self.conn.recv(32)
+		name = self.conn.recv(32).strip()
+		
+		# CHaserConnect.rb 対応
+		if self.port == 40000 or self.port == 50000:
+			name = unicode(name, 'shift-jis')
+			name = name.encode('utf-8')
+		
 		if name == "":
 			self.name = 'COOL' if self.side == 'C' else 'HOT'
 		else:
