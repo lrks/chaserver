@@ -283,7 +283,7 @@ $(function() {
 		});
 		
 		$("#servers").text(svs.join(', '));
-		$("#sid").val(last);
+		if (!$("#sid").val()) $("#sid").val(last);
 	}
 	
 	var Map = function(name, size, turn, data, player, item) {
