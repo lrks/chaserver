@@ -266,15 +266,7 @@ $(function() {
 		$("#side_c .item").text(obj.item['C']);
 		$("#side_h .item").text(obj.item['H']);
 	}
-	
-	function timeMachine(turn, sid, obj) {
-		$.each(obj.diff, function(i, v) {
-			obj.diff[i] *= -1;
-		});
-		updateTable(turn, sid, obj);
-	}
-	
-	
+
 	/*------------------------------------*/
 	/*             Server side            */
 	/*------------------------------------*/
