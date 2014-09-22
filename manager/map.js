@@ -173,7 +173,10 @@ GameMap.prototype.work4walkDown = function(plyer){ this.walkPlayer(plyer, [0, 1]
 /*------------------------------------*/
 /*              Game End              */
 /*------------------------------------*/
-GameMap.prototype.isBlock = function(x, y) { return this.getData(x, y) === TYPE_BLOCK; }
+GameMap.prototype.isBlock = function(x, y) {
+	if (!((0 <= x && x < this.size[0]) && (0 <= y && y < this.size[1]))) return TYPE_BLOCK;
+	return this.getData(x, y) === TYPE_BLOCK;
+}
 
 GameMap.prototype.isStuck = function(plyer) {
 	var x = this.player[plyer][0];
