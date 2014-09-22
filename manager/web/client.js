@@ -13,6 +13,13 @@ $(function() {
 	SOCKET.emit('connectManager');
 	this.history = [];
 	
+	// http://curtaincall.weblike.jp/portfolio-web-sounder/webaudioapi-basic/oscillator
+	window.AudioContext = window.AudioContext || window.webkitAudioContext;
+	var AUDIO_CONTEXT = new AudioContext();
+	var OSCILLATOR = null;
+	var NOW_SIDE = null;
+	var MUSIC = false;
+	
 	/*------------------------------------*/
 	/*            Manager side            */
 	/*------------------------------------*/
@@ -401,6 +408,24 @@ $(function() {
 				(obj.res.state == 1) ? 'Hの勝ち' :
 				(obj.res.state == 2) ? '引き分け' : '不正');
 		}
+		
+		// 音を鳴らそう
+		console.log(SCORE_FLG, obj.res.state, NOW_SIDE, obj.side);
+		if (SCORE_FLG && obj.res.state == -1 && NOW_SIDE != obj.res.player && window.localStorage.getItem('sid') == obj.id) {
+			NOW_SIDE = obj.res.side;
+			if (OSCILLATOR != null) OSCILLATOR.stop();
+			
+			OSCILLATOR = AUDIO_CONTEXT.createOscillator();
+			OSCILLATOR.type = 1;
+			OSCILLATOR.frequency.value = (obj.side == 'C') ? 1000 : 2000;
+			OSCILLATOR.start = OSCILLATOR.start || OSCILLATOR.noteOn;
+			OSCILLATOR.stop  = OSCILLATOR.stop  || OSCILLATOR.noteOff;
+			OSCILLATOR.connect(AUDIO_CONTEXT.destination);
+			OSCILLATOR.start();
+			MUSIC = true;
+		}
+		
+		if (obj.res.state != -1 && MUSIC) OSCILLATOR.stop();
 	});
 	
 	
